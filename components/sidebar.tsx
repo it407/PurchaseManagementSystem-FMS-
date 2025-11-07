@@ -1,194 +1,32 @@
+
 "use client";
 
-import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react"; // Added X here
+import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 
 interface SidebarProps {
   currentPage: string;
   onPageChange: (page: string) => void;
   isOpen: boolean;
   onToggle: () => void;
+  userPage: string; 
 }
 
-const menuItems = [
+// All available menu items
+const allMenuItems = [
   { id: "dashboard", label: "Dashboard", icon: "ChartBar" },
   { id: "indent", label: "Make Indent", icon: "FileText" },
   { id: "po-issue", label: "Issue PO", icon: "Send" },
   { id: "follow-up", label: "Follow-up", icon: "RefreshCw" },
-  { id: "material-receiving", label: "Material Receiving", icon: "Truck" },
+  { id: "material-receiving", label: "Gate Entry", icon: "Truck" },
   { id: "weighment", label: "Weighment", icon: "Scale" },
   { id: "qc", label: "Quality Check", icon: "Beaker" },
   { id: "mrn", label: "MRN Generation", icon: "Package" },
   { id: "bills", label: "Submit Bills", icon: "DollarSign" },
-  { id: "qc-report", label: "QC Report", icon: "FileCheck" },
   { id: "bill-entry", label: "Bill Entry", icon: "Receipt" },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
-  ChartBar: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-      />
-    </svg>
-  ),
-  FileText: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
-  ),
-  Send: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-      />
-    </svg>
-  ),
-  RefreshCw: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-      />
-    </svg>
-  ),
-  Truck: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zm-2-8h.01M9 9h.01M19 9H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-8a2 2 0 00-2-2z"
-      />
-    </svg>
-  ),
-  Scale: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v v4m0 0v4m0-4h4m-4 0H8"
-      />
-    </svg>
-  ),
-  Beaker: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.022.547m7.5-.5v.01M19.5 7.5a2 2 0 11-4 0 2 2 0 014 0z"
-      />
-    </svg>
-  ),
-  Package: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-      />
-    </svg>
-  ),
-  DollarSign: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  ),
-  FileCheck: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  ),
-  Receipt: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
-  ),
+  // ... (iconMap same as before)
 };
 
 export function Sidebar({
@@ -196,7 +34,34 @@ export function Sidebar({
   onPageChange,
   isOpen,
   onToggle,
+  userPage,
 }: SidebarProps) {
+  
+  // Filter menu items based on user's page access
+// Filter menu items based on user's page access
+const getFilteredMenuItems = () => {
+  // If user has "All" or "admin" in page, show all items
+  if (!userPage || userPage.trim() === "" || 
+      userPage.toLowerCase().includes("all") || 
+      userPage.toLowerCase().includes("admin")) {
+    return allMenuItems;
+  }
+
+  // Split the userPage string by comma and trim each item
+  const allowedPages = userPage.split(',').map(page => page.trim().toLowerCase());
+  
+  // Filter menu items based on allowed pages - match by both id and label
+  return allMenuItems.filter(item => {
+    const itemLabelLower = item.label.toLowerCase();
+    const itemIdLower = item.id.toLowerCase();
+    
+    return allowedPages.some(allowedPage => 
+      itemLabelLower.includes(allowedPage) || itemIdLower.includes(allowedPage)
+    );
+  });
+};
+  const filteredMenuItems = getFilteredMenuItems();
+
   /* Desktop Sidebar */
   const DesktopSidebar = () => (
     <aside
@@ -239,7 +104,7 @@ export function Sidebar({
       </div>
 
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
-        {menuItems.map((item) => {
+        {filteredMenuItems.map((item) => { // Use filteredMenuItems here
           const isActive = currentPage === item.id;
           const Icon = iconMap[item.icon];
 
@@ -325,12 +190,12 @@ export function Sidebar({
                 onClick={onToggle}
                 className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
               >
-                <X className="w-5 h-5" /> {/* Now works – X is imported */}
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-              {menuItems.map((item) => {
+              {filteredMenuItems.map((item) => { // Use filteredMenuItems here
                 const isActive = currentPage === item.id;
                 const Icon = iconMap[item.icon];
 

@@ -184,6 +184,7 @@ interface ProcurementContextType {
   updateRecord: (id: string, updates: Partial<ProcurementRecord>) => void
   moveRecordToStage: (id: string, newStage: ProcurementRecord["stage"], newStatus: ProcurementRecord["status"]) => void
   getRecordsByStage: (stage: ProcurementRecord["stage"], status?: ProcurementRecord["status"]) => ProcurementRecord[]
+   clearRecords: () => void 
 }
 
 const ProcurementContext = createContext<ProcurementContextType | undefined>(undefined)
@@ -225,56 +226,43 @@ export function ProcurementProvider({ children }: { children: React.ReactNode })
   const [qcReports, setQcReports] = useState<QCReportRecord[]>([])
   const [billEntries, setBillEntries] = useState<BillEntryRecord[]>([])
 
-  const [records, setRecords] = useState<ProcurementRecord[]>([
-    {
-      id: "1",
-      poNo: "PO-2025-001",
-      supplierName: "Supplier A",
-      materialName: "Steel Sheets",
-      quantity: 100,
-      rate: 500,
-      deliveryDate: "2025-11-15",
-      stage: "indent",
-      status: "Pending",
-      createdAt: new Date().toISOString(),
-    },
-  ])
+  const [records, setRecords] = useState<ProcurementRecord[]>([]);
 
   const addRecord = useCallback((record: ProcurementRecord) => {
-    setRecords((prevRecords) => [...prevRecords, record])
+  setRecords((prevRecords) => [...prevRecords, record])
+}, [])
+
+
+
+const updateRecord = useCallback((id: string, updates: Partial<ProcurementRecord>) => {
+  setRecords((prevRecords) => prevRecords.map((r) => (r.id === id ? { ...r, ...updates } : r)))
+}, [])
+
+ const clearRecords = useCallback(() => {
+    setRecords([])
   }, [])
 
-  const updateRecord = useCallback((id: string, updates: Partial<ProcurementRecord>) => {
-    setRecords((prevRecords) => prevRecords.map((r) => (r.id === id ? { ...r, ...updates } : r)))
-  }, [])
 
   const moveRecordToStage = useCallback(
-    (id: string, newStage: ProcurementRecord["stage"], newStatus: ProcurementRecord["status"]) => {
-      console.log("[v0] moveRecordToStage called with id:", id, "newStage:", newStage, "newStatus:", newStatus)
-      setRecords((prevRecords) => {
-        console.log("[v0] Current records before update:", prevRecords)
-        const updated = prevRecords.map((r) => {
-          if (r.id === id) {
-            console.log("[v0] Found record to update:", r)
-            return { ...r, stage: newStage, status: newStatus }
-          }
-          return r
-        })
-        console.log("[v0] Records after update:", updated)
-        return updated
+  (id: string, newStage: ProcurementRecord["stage"], newStatus: ProcurementRecord["status"]) => {
+    setRecords((prevRecords) => {
+      return prevRecords.map((r) => {
+        if (r.id === id) {
+          return { ...r, stage: newStage, status: newStatus }
+        }
+        return r
       })
-    },
-    [],
-  )
+    })
+  },
+  [],
+)
 
   const getRecordsByStage = useCallback(
-    (stage: ProcurementRecord["stage"], status?: ProcurementRecord["status"]) => {
-      const filtered = records.filter((r) => r.stage === stage && (!status || r.status === status))
-      console.log("[v0] Getting records for stage:", stage, "status:", status, "found:", filtered.length)
-      return filtered
-    },
-    [records],
-  )
+  (stage: ProcurementRecord["stage"], status?: ProcurementRecord["status"]) => {
+    return records.filter((r) => r.stage === stage && (!status || r.status === status))
+  },
+  [records],
+)
 
   const value: ProcurementContextType = {
     // Indent
@@ -337,6 +325,7 @@ export function ProcurementProvider({ children }: { children: React.ReactNode })
     updateRecord,
     moveRecordToStage,
     getRecordsByStage,
+    clearRecords, 
   }
 
   return <ProcurementContext.Provider value={value}>{children}</ProcurementContext.Provider>

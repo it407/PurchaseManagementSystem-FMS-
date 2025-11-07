@@ -1,3 +1,5 @@
+
+
 "use client"
 
 import type React from "react"
@@ -6,21 +8,70 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
+import { Eye, EyeOff } from "lucide-react"
 
 interface LoginPageProps {
-  onLogin: (username: string, name: string) => void
+  onLogin: (username: string, name: string, role: string) => void
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const [name, setName] = useState("")
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (username && password && (isSignUp ? name : true)) {
-      onLogin(username, name || username)
+    if (!username || !password) {
+      setError("Please enter both username and password")
+      return
+    }
+
+    setIsLoading(true)
+    setError("")
+
+    try {
+      // Use GET request with callback parameter (JSONP approach)
+      const url = `https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&callback=handleLoginResponse`
+
+      // Create script element for JSONP
+      const script = document.createElement('script');
+      script.src = url;
+
+      // Define the callback function
+      (window as any).handleLoginResponse = (response: any) => {
+        // Clean up
+        document.head.removeChild(script);
+        delete (window as any).handleLoginResponse;
+
+        if (response.success) {
+          const userData = response.user;
+
+          // Store user data in localStorage
+          localStorage.setItem("user", JSON.stringify({
+            name: userData.name,
+            username: userData.username,
+            id: userData.id,
+            role: userData.role,
+            page: userData.page,
+            loginTime: new Date().toISOString()
+          }))
+
+          onLogin(userData.username, userData.name, userData.role)
+        } else {
+          setError(response.error || "Invalid username or password")
+        }
+        setIsLoading(false);
+      };
+
+      document.head.appendChild(script);
+
+    } catch (error) {
+      console.error("Login error:", error)
+      setError("Failed to connect to server. Please try again.")
+      setIsLoading(false)
     }
   }
 
@@ -28,25 +79,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 shadow-lg">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Procurement Hub</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Purchase Management System</h1>
           <p className="text-gray-600">Manage your supply chain efficiently</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <Input
-                type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-          )}
-
-<div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
             <Input
               type="text"
@@ -57,41 +95,40 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             />
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="pr-10"
             />
-          </div>
-
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-            {isSignUp ? "Sign Up" : "Login"}
-          </Button>
-          <p className="text-center text-sm text-gray-600">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{' '}
             <button
               type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp)
-                // Clear form when switching between login/signup
-                setUsername('')
-                setPassword('')
-                if (isSignUp) setName('')
-              }}
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
             >
-              {isSignUp ? 'Sign in' : 'Sign up'}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
-          </p>
+          </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700"
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging in..." : "Login"}
+          </Button>
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">Demo Credentials:</p>
-          <p className="text-xs text-gray-500 text-center">Username: demo | Password: demo123</p>
+          <p className="text-xs text-gray-500 text-center">Use your registered credentials to login</p>
         </div>
       </Card>
     </div>
