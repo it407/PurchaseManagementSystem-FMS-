@@ -50,37 +50,40 @@ export function Dashboard() {
   };
 
   // Frontend mein hi data calculate karo
-  const calculateDashboardData = (data: any[]) => {
+ const calculateDashboardData = (data: any[]) => {
     console.log("Calculating dashboard data from", data.length, "rows");
 
-    // Column indexes (0-based)
+    // Updated Column indexes (0-based) as per your requirements
     const COLUMNS = {
-      PO: 4, // Column E
-      ISSUE_PO: 10, // Column J
-      FOLLOW_UP: 17, // Column Q
-      MATERIAL_RECEIVING: 22, // Column V
-      WEIGHMENT: 27, // Column AA
-      QC: 34, // Column AH
-      MATERIAL_UNLOADING: 41, // Column AO
-      SUBMIT_BILL: 46 // Column AT
+      PO: 5, // Column F (changed from 4 to 5)
+      ISSUE_PO: 10, // Column K (changed from 10 to 10 - same)
+      FOLLOW_UP: 17, // Column R (changed from 17 to 17 - same)
+      GATE_ENTRY: 22, // Column W (changed from MATERIAL_RECEIVING to GATE_ENTRY)
+      WEIGHMENT: 28, // Column AC (changed from 27 to 28)
+      QC: 36, // Column AK (changed from 34 to 36)
+      MATERIAL_UNLOADING: 43, // Column AR (changed from 41 to 43)
+      SUBMIT_BILL: 48, // Column AW (changed from 46 to 48)
+      BILL_ENTRY_ERP: 53 // Column BB (new column)
     };
 
     let result = {
       totalPO: 0,
       totalIssuePO: 0,
       totalFollowUp: 0,
-      totalMaterialReceiving: 0,
+      totalGateEntry: 0,
       totalWeighment: 0,
       totalQC: 0,
       totalMaterialUnloading: 0,
       totalSubmitBill: 0,
+      totalBillEntryERP: 0,
       pendingIssuePO: 0,
       pendingFollowUp: 0,
-      pendingMaterialReceiving: 0,
+      pendingGateEntry: 0,
       pendingWeighment: 0,
       pendingQC: 0,
       pendingMaterialUnloading: 0,
-      pendingSubmitBill: 0
+      pendingSubmitBill: 0,
+      pendingBillEntryERP: 0
     };
 
     // Row 6 se start karo (headers skip karo)
@@ -91,11 +94,12 @@ export function Dashboard() {
       if (row[COLUMNS.PO] && row[COLUMNS.PO].toString().trim() !== "") result.totalPO++;
       if (row[COLUMNS.ISSUE_PO] && row[COLUMNS.ISSUE_PO].toString().trim() !== "") result.totalIssuePO++;
       if (row[COLUMNS.FOLLOW_UP] && row[COLUMNS.FOLLOW_UP].toString().trim() !== "") result.totalFollowUp++;
-      if (row[COLUMNS.MATERIAL_RECEIVING] && row[COLUMNS.MATERIAL_RECEIVING].toString().trim() !== "") result.totalMaterialReceiving++;
+      if (row[COLUMNS.GATE_ENTRY] && row[COLUMNS.GATE_ENTRY].toString().trim() !== "") result.totalGateEntry++;
       if (row[COLUMNS.WEIGHMENT] && row[COLUMNS.WEIGHMENT].toString().trim() !== "") result.totalWeighment++;
       if (row[COLUMNS.QC] && row[COLUMNS.QC].toString().trim() !== "") result.totalQC++;
       if (row[COLUMNS.MATERIAL_UNLOADING] && row[COLUMNS.MATERIAL_UNLOADING].toString().trim() !== "") result.totalMaterialUnloading++;
       if (row[COLUMNS.SUBMIT_BILL] && row[COLUMNS.SUBMIT_BILL].toString().trim() !== "") result.totalSubmitBill++;
+      if (row[COLUMNS.BILL_ENTRY_ERP] && row[COLUMNS.BILL_ENTRY_ERP].toString().trim() !== "") result.totalBillEntryERP++;
 
       // Pending counts (empty or "Null" values)
       if (!row[COLUMNS.ISSUE_PO] || row[COLUMNS.ISSUE_PO].toString().trim() === "" || row[COLUMNS.ISSUE_PO].toString().trim().toLowerCase() === "null") {
@@ -104,8 +108,8 @@ export function Dashboard() {
       if (!row[COLUMNS.FOLLOW_UP] || row[COLUMNS.FOLLOW_UP].toString().trim() === "" || row[COLUMNS.FOLLOW_UP].toString().trim().toLowerCase() === "null") {
         result.pendingFollowUp++;
       }
-      if (!row[COLUMNS.MATERIAL_RECEIVING] || row[COLUMNS.MATERIAL_RECEIVING].toString().trim() === "" || row[COLUMNS.MATERIAL_RECEIVING].toString().trim().toLowerCase() === "null") {
-        result.pendingMaterialReceiving++;
+      if (!row[COLUMNS.GATE_ENTRY] || row[COLUMNS.GATE_ENTRY].toString().trim() === "" || row[COLUMNS.GATE_ENTRY].toString().trim().toLowerCase() === "null") {
+        result.pendingGateEntry++;
       }
       if (!row[COLUMNS.WEIGHMENT] || row[COLUMNS.WEIGHMENT].toString().trim() === "" || row[COLUMNS.WEIGHMENT].toString().trim().toLowerCase() === "null") {
         result.pendingWeighment++;
@@ -119,11 +123,16 @@ export function Dashboard() {
       if (!row[COLUMNS.SUBMIT_BILL] || row[COLUMNS.SUBMIT_BILL].toString().trim() === "" || row[COLUMNS.SUBMIT_BILL].toString().trim().toLowerCase() === "null") {
         result.pendingSubmitBill++;
       }
+      if (!row[COLUMNS.BILL_ENTRY_ERP] || row[COLUMNS.BILL_ENTRY_ERP].toString().trim() === "" || row[COLUMNS.BILL_ENTRY_ERP].toString().trim().toLowerCase() === "null") {
+        result.pendingBillEntryERP++;
+      }
     }
 
     console.log("Calculated dashboard data:", result);
     setDashboardData(result);
   };
+
+
 
   // Get current user info
   const getCurrentUser = () => {
@@ -158,127 +167,126 @@ export function Dashboard() {
     pendingSubmitBill: 1,
   };
 
-  const stats = viewType === "total" ? [
+ const stats = viewType === "total" ? [
     {
       label: "Total PO",
-      value: dashboardData?.totalPO || mockData.totalPO,
+      value: dashboardData?.totalPO || 0,
       icon: Package,
       color: "text-blue-600",
       bg: "bg-blue-50",
-      description: "Column E"
     },
     {
       label: "Total Issue PO",
-      value: dashboardData?.totalIssuePO || mockData.totalIssuePO,
+      value: dashboardData?.totalIssuePO || 0,
       icon: FileText,
       color: "text-green-600",
       bg: "bg-green-50",
-      description: "Column J"
     },
     {
       label: "Total Follow Up",
-      value: dashboardData?.totalFollowUp || mockData.totalFollowUp,
+      value: dashboardData?.totalFollowUp || 0,
       icon: Clock,
       color: "text-purple-600",
       bg: "bg-purple-50",
-      description: "Column Q"
     },
     {
-      label: "Total Material Receiving",
-      value: dashboardData?.totalMaterialReceiving || mockData.totalMaterialReceiving,
+      label: "Total Gate Entry",
+      value: dashboardData?.totalGateEntry || 0,
       icon: Package,
       color: "text-orange-600",
       bg: "bg-orange-50",
-      description: "Column V"
     },
     {
       label: "Total Weighment",
-      value: dashboardData?.totalWeighment || mockData.totalWeighment,
+      value: dashboardData?.totalWeighment || 0,
       icon: BarChart3,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
-      description: "Column AA"
     },
     {
       label: "Total Quality Check",
-      value: dashboardData?.totalQC || mockData.totalQC,
+      value: dashboardData?.totalQC || 0,
       icon: AlertCircle,
       color: "text-amber-600",
       bg: "bg-amber-50",
-      description: "Column AH"
     },
     {
       label: "Total Material Unloading",
-      value: dashboardData?.totalMaterialUnloading || mockData.totalMaterialUnloading,
+      value: dashboardData?.totalMaterialUnloading || 0,
       icon: Package,
       color: "text-cyan-600",
       bg: "bg-cyan-50",
-      description: "Column AO"
     },
     {
       label: "Total Submit Bill",
-      value: dashboardData?.totalSubmitBill || mockData.totalSubmitBill,
+      value: dashboardData?.totalSubmitBill || 0,
       icon: FileText,
       color: "text-red-600",
       bg: "bg-red-50",
-      description: "Column AT"
+    },
+    {
+      label: "Total Bill Entry ERP",
+      value: dashboardData?.totalBillEntryERP || 0,
+      icon: FileText,
+      color: "text-pink-600",
+      bg: "bg-pink-50",
     }
   ] : [
     {
       label: "Pending Issue PO",
-      value: dashboardData?.pendingIssuePO || mockData.pendingIssuePO,
+      value: dashboardData?.pendingIssuePO || 0,
       icon: FileText,
       color: "text-green-600",
       bg: "bg-green-50",
-      description: "Column J (Null values)"
     },
     {
       label: "Pending Follow Up",
-      value: dashboardData?.pendingFollowUp || mockData.pendingFollowUp,
+      value: dashboardData?.pendingFollowUp || 0,
       icon: Clock,
       color: "text-purple-600",
       bg: "bg-purple-50",
-      description: "Column Q"
     },
     {
-      label: "Pending Material Receiving",
-      value: dashboardData?.pendingMaterialReceiving || mockData.pendingMaterialReceiving,
+      label: "Pending Gate Entry",
+      value: dashboardData?.pendingGateEntry || 0,
       icon: Package,
       color: "text-orange-600",
       bg: "bg-orange-50",
-      description: "Column V"
     },
     {
       label: "Pending Weighment",
-      value: dashboardData?.pendingWeighment || mockData.pendingWeighment,
+      value: dashboardData?.pendingWeighment || 0,
       icon: BarChart3,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
-      description: "Column AA"
     },
     {
       label: "Pending Quality Check",
-      value: dashboardData?.pendingQC || mockData.pendingQC,
+      value: dashboardData?.pendingQC || 0,
       icon: AlertCircle,
       color: "text-amber-600",
       bg: "bg-amber-50",
-      description: "Column AH"
     },
     {
       label: "Pending Material Unloading",
-      value: dashboardData?.pendingMaterialUnloading || mockData.pendingMaterialUnloading,
+      value: dashboardData?.pendingMaterialUnloading || 0,
       icon: Package,
       color: "text-cyan-600",
       bg: "bg-cyan-50",
-      description: "Column AO"
     },
     {
       label: "Pending Submit Bill",
-      value: dashboardData?.pendingSubmitBill || mockData.pendingSubmitBill,
+      value: dashboardData?.pendingSubmitBill || 0,
       icon: FileText,
       color: "text-red-600",
       bg: "bg-red-50",
-      description: "Column AT"
+    },
+    {
+      label: "Pending Bill Entry ERP",
+      value: dashboardData?.pendingBillEntryERP || 0,
+      icon: FileText,
+      color: "text-pink-600",
+      bg: "bg-pink-50",
     }
   ];
 

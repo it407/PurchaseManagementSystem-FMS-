@@ -74,6 +74,8 @@ export function BillsPage() {
     remark: ""
   });
   const [recordToCancel, setRecordToCancel] = useState<ProcurementRecord | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<ProcurementRecord | null>(null);
@@ -317,6 +319,27 @@ export function BillsPage() {
     setIsCancelOpen(true);
   };
 
+
+  const filterRecords = (records: ProcurementRecord[]) => {
+  if (!searchTerm.trim()) return records;
+  
+  const term = searchTerm.toLowerCase();
+  return records.filter(record =>
+    record.indentNumber?.toLowerCase().includes(term) ||
+    record.productNo?.toLowerCase().includes(term) ||
+    record.billNo?.toLowerCase().includes(term) ||
+    record.poNo?.toLowerCase().includes(term) ||
+    record.supplierName?.toLowerCase().includes(term) ||
+    record.materialName?.toLowerCase().includes(term) ||
+    record.amount?.toString().includes(term) ||
+    record.quantityNumber?.toLowerCase().includes(term)
+  );
+};
+
+// Update the filtered records in both tabs
+const filteredPending = filterRecords(pending);
+const filteredHistory = filterRecords(history);
+
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
@@ -344,6 +367,23 @@ export function BillsPage() {
         </button>
       </div>
 
+      <div className="flex justify-between items-center gap-4">
+  <div className="relative flex-1 max-w-md">
+    <Input
+      type="text"
+      placeholder={`Search in ${tab}...`}
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="pl-10"
+    />
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+  </div>
+</div>
+
       {/* Loading State */}
       {loading && (
         <div className="flex justify-center items-center p-8">
@@ -356,11 +396,16 @@ export function BillsPage() {
       {!loading && tab === "pending" && (
         <Card className="overflow-hidden">
           {pending.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <p className="text-lg font-medium">No pending bills</p>
-              <p className="text-sm mt-1">All MRN materials have been billed.</p>
-            </div>
-          ) : (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No pending bills</p>
+        <p className="text-sm mt-1">All MRN materials have been billed.</p>
+      </div>
+    ) : filteredPending.length === 0 ? (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No matching records found</p>
+        <p className="text-sm mt-1">Try adjusting your search terms.</p>
+      </div>
+    ) : (
             <>
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
@@ -388,7 +433,7 @@ export function BillsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {pending.map((record) => (
+                    {filteredPending.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
@@ -422,7 +467,7 @@ export function BillsPage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {pending.map((record) => (
+                  {filteredPending.map((record) => (
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -477,12 +522,17 @@ export function BillsPage() {
       {/* === HISTORY TAB === */}
       {!loading && tab === "history" && (
         <Card className="overflow-hidden">
-          {history.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <p className="text-lg font-medium">No bill history</p>
-              <p className="text-sm mt-1">Submitted bills will appear here.</p>
-            </div>
-          ) : (
+           {history.length === 0 ? (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No bill history</p>
+        <p className="text-sm mt-1">Submitted bills will appear here.</p>
+      </div>
+    ) : filteredHistory.length === 0 ? (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No matching records found</p>
+        <p className="text-sm mt-1">Try adjusting your search terms.</p>
+      </div>
+    ) : (
             <>
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
@@ -514,7 +564,7 @@ export function BillsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {history.map((record) => (
+                   {filteredHistory.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>

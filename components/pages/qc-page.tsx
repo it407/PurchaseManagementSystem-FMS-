@@ -307,6 +307,31 @@ const openCancelModal = (record: Record) => {
 };
 
 
+// Add this state near other useState declarations
+const [searchTerm, setSearchTerm] = useState("");
+
+// Add this function to filter records based on search term
+const filterRecords = (records: Record[]) => {
+  if (!searchTerm.trim()) return records;
+  
+  const term = searchTerm.toLowerCase();
+  return records.filter(record =>
+    record.indentNumber?.toLowerCase().includes(term) ||
+    record.productNo?.toLowerCase().includes(term) ||
+    record.poNo?.toLowerCase().includes(term) ||
+    record.materialName?.toLowerCase().includes(term) ||
+    record.qcReportNo?.toLowerCase().includes(term) ||
+    record.sampleResult?.toLowerCase().includes(term) ||
+    record.approvalStatus?.toLowerCase().includes(term) ||
+    record.status?.toLowerCase().includes(term)
+  );
+};
+
+// Update the filtered records in both tabs
+const filteredPending = filterRecords(pending);
+const filteredHistory = filterRecords(history);
+
+
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
@@ -334,6 +359,23 @@ const openCancelModal = (record: Record) => {
         </button>
       </div>
 
+      <div className="flex justify-between items-center gap-4">
+  <div className="relative flex-1 max-w-md">
+    <Input
+      type="text"
+      placeholder={`Search in ${tab}...`}
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="pl-10"
+    />
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+  </div>
+</div>
+
       {/* Loading State */}
       {loading && (
         <div className="flex justify-center items-center p-8">
@@ -346,11 +388,16 @@ const openCancelModal = (record: Record) => {
       {!loading && tab === "pending" && (
         <Card className="overflow-hidden">
           {pending.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <p className="text-lg font-medium">No pending QC</p>
-              <p className="text-sm mt-1">All verified materials have been QC checked.</p>
-            </div>
-          ) : (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No pending QC</p>
+        <p className="text-sm mt-1">All verified materials have been QC checked.</p>
+      </div>
+    ) : filteredPending.length === 0 ? (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No matching records found</p>
+        <p className="text-sm mt-1">Try adjusting your search terms.</p>
+      </div>
+    ) : (
             <>
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
@@ -378,7 +425,7 @@ const openCancelModal = (record: Record) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {pending.map((record) => (
+                    {filteredPending.map((record) => ( 
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
   <div className="flex gap-2">
@@ -414,7 +461,7 @@ const openCancelModal = (record: Record) => {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {pending.map((record) => (
+                {filteredPending.map((record) => ( 
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -454,11 +501,16 @@ const openCancelModal = (record: Record) => {
       {!loading && tab === "history" && (
         <Card className="overflow-hidden">
           {history.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <p className="text-lg font-medium">No QC history</p>
-              <p className="text-sm mt-1">QC reports will appear here.</p>
-            </div>
-          ) : (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No QC history</p>
+        <p className="text-sm mt-1">QC reports will appear here.</p>
+      </div>
+    ) : filteredHistory.length === 0 ? (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">No matching records found</p>
+        <p className="text-sm mt-1">Try adjusting your search terms.</p>
+      </div>
+    ) : (
             <>
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
@@ -490,7 +542,7 @@ const openCancelModal = (record: Record) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {history.map((record) => (
+                    {filteredHistory.map((record) => ( 
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
 
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
@@ -527,7 +579,7 @@ const openCancelModal = (record: Record) => {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {history.map((record) => (
+                {filteredHistory.map((record) => (
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"

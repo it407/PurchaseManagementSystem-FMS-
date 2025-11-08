@@ -67,6 +67,30 @@ export function IndentPage() {
   });
   const [indentToCancel, setIndentToCancel] = useState<(typeof indents)[0] | null>(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+// Remove the original displayedIndents declaration and replace it with:
+const displayedIndents = getRecordsByStage("indent") || [];
+
+
+const filteredIndents = displayedIndents.filter((indent) => {
+  if (!searchTerm) return true;
+  
+  const term = searchTerm.toLowerCase();
+  return (
+    String(indent.indentNumber || '').toLowerCase().includes(term) ||
+    String(indent.productNumber || '').toLowerCase().includes(term) ||
+    String(indent.poNo || '').toLowerCase().includes(term) ||
+    String(indent.supplierName || '').toLowerCase().includes(term) ||
+    String(indent.materialName || '').toLowerCase().includes(term) ||
+    String(indent.quantity || '').toLowerCase().includes(term) ||
+    String(indent.rate || '').toLowerCase().includes(term) ||
+    String(indent.deliveryDate || '').toLowerCase().includes(term) ||
+    String(indent.status || '').toLowerCase().includes(term)
+  );
+});
+
+
 
 
   // Modal States
@@ -370,6 +394,24 @@ export function IndentPage() {
         const formattedIndents = sheetData.map((row: any[], index: number) => {
           const quantityWithUnit = row[6] || ''; // Column G - Quantity with unit
 
+          const formatDate = (dateString: string) => {
+          if (!dateString) return '';
+          
+          try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString; // Return original if invalid
+            
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            
+            return `${day}/${month}/${year}`;
+          } catch (error) {
+            console.error("Error formatting date:", dateString, error);
+            return dateString;
+          }
+        };
+
           return {
             id: `sheet-${index}-${row[1]}-${row[2]}`,
             indentNumber: row[1] || '',
@@ -379,9 +421,9 @@ export function IndentPage() {
             materialName: row[4] || '',
             quantity: quantityWithUnit, // Keep the full string with unit
             rate: row[7] || 0,
-            deliveryDate: row[8] || '',
+            deliveryDate: formatDate(row[8]),
             stage: "indent" as const,
-            status: "Pending" as const,
+            status: row[57] || '',
             createdAt: row[0] || '',
           };
         });
@@ -416,7 +458,7 @@ export function IndentPage() {
     setIsViewOpen(true);
   };
 
-  const displayedIndents = indents || [];
+  // const displayedIndents = indents || [];
 
   return (
     <>
@@ -438,6 +480,16 @@ export function IndentPage() {
         </Button>
       </div>
 
+      <div className="mt-4">
+  <Input
+    type="text"
+    placeholder="Search all columns..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="w-full sm:max-w-md"
+  />
+</div>
+
       {/* Table / Cards */}
       <Card className="mt-6 overflow-hidden">
         {loading ? (
@@ -445,7 +497,7 @@ export function IndentPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <span className="ml-2 text-gray-600">Loading indents...</span>
           </div>
-        ) : displayedIndents.length === 0 ? (
+        ) : filteredIndents.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <p className="text-lg font-medium">No indents yet</p>
             <p className="text-sm mt-1">Click "New" to create one.</p>
@@ -480,7 +532,7 @@ export function IndentPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {displayedIndents.map((i) => (
+                  {filteredIndents.map((i) => (
                     <tr
                       key={i.id}
                       className="hover:bg-gray-50 transition-colors"

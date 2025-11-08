@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Eye, EyeOff } from "lucide-react"
 
+import Logo from "../image/zoff.png"
+import Image from "next/image"
+
 interface LoginPageProps {
   onLogin: (username: string, name: string, role: string) => void
 }
@@ -78,10 +81,24 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 shadow-lg">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Purchase Management System</h1>
-          <p className="text-gray-600">Manage your supply chain efficiently</p>
-        </div>
+
+        
+ <div className="flex items-center bg-orange-100 p-4 rounded-t-lg">
+  {/* Logo */}
+  <div className="flex items-center justify-center w-24 h-10 bg-orange-600 text-white font-bold text-lg rounded mr-3 shadow-sm">
+    ZOFF
+  </div>
+
+  {/* Title */}
+  <div>
+    <h1 className="text-2xl font-extrabold text-gray-900 leading-tight">
+      Purchase Management System
+    </h1>
+  </div>
+</div>
+
+
+
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

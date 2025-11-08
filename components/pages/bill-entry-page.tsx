@@ -78,6 +78,7 @@ export function BillEntryPage() {
     remark: ""
   });
   const [recordToCancel, setRecordToCancel] = useState<BillEntryRecord | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<BillEntryRecord | null>(null);
@@ -312,6 +313,24 @@ export function BillEntryPage() {
     setIsCancelOpen(true);
   };
 
+  const filterRecords = (records: BillEntryRecord[]) => {
+  if (!searchTerm.trim()) return records;
+  
+  const term = searchTerm.toLowerCase();
+  return records.filter(record =>
+    record.indentNumber.toLowerCase().includes(term) ||
+    record.productNo.toLowerCase().includes(term) ||
+    record.billNo.toLowerCase().includes(term) ||
+    record.poNo.toLowerCase().includes(term) ||
+    record.enteredBy?.toLowerCase().includes(term) ||
+    record.amount.toString().includes(term)
+  );
+};
+
+
+const filteredPending = filterRecords(pending);
+const filteredHistory = filterRecords(history);
+
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
@@ -339,6 +358,23 @@ export function BillEntryPage() {
         </button>
       </div>
 
+      <div className="flex justify-between items-center gap-4">
+  <div className="relative flex-1 max-w-md">
+    <Input
+      type="text"
+      placeholder={`Search in ${tab}...`}
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="pl-10"
+    />
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+  </div>
+</div>
+
 
       {/* === PENDING TAB === */}
       {tab === "pending" && (
@@ -348,7 +384,7 @@ export function BillEntryPage() {
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               <span className="ml-2 text-gray-600">Loading...</span>
             </div>
-          ) : pending.length === 0 ? (
+          ) : filteredPending.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <p className="text-lg font-medium">No pending ERP entries</p>
               <p className="text-sm mt-1">All QC reports have been entered in ERP.</p>
@@ -381,7 +417,7 @@ export function BillEntryPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {pending.map((record) => (
+                    {filteredPending.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
@@ -417,7 +453,7 @@ export function BillEntryPage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {pending.map((record) => (
+                {filteredPending.map((record) => (
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -480,7 +516,7 @@ export function BillEntryPage() {
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               <span className="ml-2 text-gray-600">Loading...</span>
             </div>
-          ) : history.length === 0 ? (
+          ) : filteredHistory.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <p className="text-lg font-medium">No ERP history</p>
               <p className="text-sm mt-1">Completed entries will appear here.</p>
@@ -514,7 +550,7 @@ export function BillEntryPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {history.map((record) => (
+                    {filteredHistory.map((record) => ( 
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
@@ -535,7 +571,7 @@ export function BillEntryPage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {history.map((record) => (
+                 {filteredHistory.map((record) => (
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"

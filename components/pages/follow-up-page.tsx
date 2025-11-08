@@ -56,10 +56,12 @@ export function FollowUpPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<(typeof pending)[0] | null>(null);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
-const [cancelForm, setCancelForm] = useState({
-  remark: ""
-});
-const [recordToCancel, setRecordToCancel] = useState<any>(null);
+  const [cancelForm, setCancelForm] = useState({
+    remark: ""
+  });
+  const [recordToCancel, setRecordToCancel] = useState<any>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
 
 
 
@@ -208,96 +210,116 @@ const [recordToCancel, setRecordToCancel] = useState<any>(null);
 
 
   const generateCancelSerialNumber = async () => {
-  try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch");
-    const result = await response.json();
+    try {
+      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch");
+      const result = await response.json();
 
-    if (result.success && result.data) {
-      const sheetData = result.data.slice(1);
-      let highestNumber = 0;
-      sheetData.forEach((row: any[]) => {
-        const serialNumber = row[1];
-        if (serialNumber && typeof serialNumber === 'string' && serialNumber.startsWith('SN-')) {
-          const numberPart = parseInt(serialNumber.replace('SN-', ''));
-          if (!isNaN(numberPart) && numberPart > highestNumber) {
-            highestNumber = numberPart;
+      if (result.success && result.data) {
+        const sheetData = result.data.slice(1);
+        let highestNumber = 0;
+        sheetData.forEach((row: any[]) => {
+          const serialNumber = row[1];
+          if (serialNumber && typeof serialNumber === 'string' && serialNumber.startsWith('SN-')) {
+            const numberPart = parseInt(serialNumber.replace('SN-', ''));
+            if (!isNaN(numberPart) && numberPart > highestNumber) {
+              highestNumber = numberPart;
+            }
           }
-        }
+        });
+        const nextNumber = highestNumber + 1;
+        return `SN-${String(nextNumber).padStart(3, '0')}`;
+      }
+    } catch (error) {
+      console.error("Error generating serial number:", error);
+    }
+    return 'SN-001';
+  };
+
+  // Add this cancel handler function
+  const handleCancel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitLoading(true);
+
+    try {
+      if (!recordToCancel) return;
+
+      const serialNumber = await generateCancelSerialNumber();
+      const timestamp = new Date().toLocaleString();
+
+      const rowData = [
+        timestamp,
+        serialNumber,
+        recordToCancel.indentNumber,
+        recordToCancel.productNo,
+        recordToCancel.supplierName,
+        recordToCancel.materialName,
+        recordToCancel.quantity,
+        recordToCancel.rate,
+        "Follow-up", // Stage changed to "Follow-up"
+        cancelForm.remark
+      ];
+
+      console.log("Submitting cancel data to Google Sheets:", rowData);
+
+      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          action: "insert",
+          sheetName: "Cancel",
+          rowData: JSON.stringify(rowData)
+        })
       });
-      const nextNumber = highestNumber + 1;
-      return `SN-${String(nextNumber).padStart(3, '0')}`;
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("Record cancelled successfully");
+        setIsCancelOpen(false);
+        setCancelForm({ remark: "" });
+        setRecordToCancel(null);
+
+        // Refresh the data
+        await fetchFollowUpData();
+      } else {
+        console.error("Failed to cancel record");
+        alert("Failed to cancel record. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error cancelling record:", error);
+      alert("Error cancelling record: " + error);
+    } finally {
+      setSubmitLoading(false);
     }
-  } catch (error) {
-    console.error("Error generating serial number:", error);
-  }
-  return 'SN-001';
-};
+  };
 
-// Add this cancel handler function
-const handleCancel = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setSubmitLoading(true);
+  // Add this function to open cancel modal
+  const openCancelModal = (record: any) => {
+    setRecordToCancel(record);
+    setCancelForm({ remark: "" });
+    setIsCancelOpen(true);
+  };
 
-  try {
-    if (!recordToCancel) return;
 
-    const serialNumber = await generateCancelSerialNumber();
-    const timestamp = new Date().toLocaleString();
-
-    const rowData = [
-      timestamp,
-      serialNumber,
-      recordToCancel.indentNumber,
-      recordToCancel.productNo,
-      recordToCancel.supplierName,
-      recordToCancel.materialName,
-      recordToCancel.quantity,
-      recordToCancel.rate,
-      "Follow-up", // Stage changed to "Follow-up"
-      cancelForm.remark
-    ];
-
-    console.log("Submitting cancel data to Google Sheets:", rowData);
-
-    const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        action: "insert",
-        sheetName: "Cancel",
-        rowData: JSON.stringify(rowData)
-      })
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      console.log("Record cancelled successfully");
-      setIsCancelOpen(false);
-      setCancelForm({ remark: "" });
-      setRecordToCancel(null);
-      
-      // Refresh the data
-      await fetchFollowUpData();
-    } else {
-      console.error("Failed to cancel record");
-      alert("Failed to cancel record. Please try again.");
-    }
-  } catch (error) {
-    console.error("Error cancelling record:", error);
-    alert("Error cancelling record: " + error);
-  } finally {
-    setSubmitLoading(false);
-  }
-};
-
-// Add this function to open cancel modal
-const openCancelModal = (record: any) => {
-  setRecordToCancel(record);
-  setCancelForm({ remark: "" });
-  setIsCancelOpen(true);
+  const filterRecords = (records: any[]) => {
+  if (!searchQuery.trim()) return records;
+  
+  const query = searchQuery.toLowerCase();
+  return records.filter(record => 
+    String(record.indentNumber || '').toLowerCase().includes(query) ||
+    String(record.productNo || '').toLowerCase().includes(query) ||
+    String(record.poNo || '').toLowerCase().includes(query) ||
+    String(record.supplierName || '').toLowerCase().includes(query) ||
+    String(record.materialName || '').toLowerCase().includes(query) ||
+    String(record.quantity || '').includes(query) ||
+    String(record.rate || '').includes(query) ||
+    String(record.expectedDelivery || '').toLowerCase().includes(query) ||
+    String(record.deliveryDate || '').toLowerCase().includes(query) ||
+    String(record.remarks || '').toLowerCase().includes(query) ||
+    String(record.status || '').toLowerCase().includes(query)
+  );
 };
 
   return (
@@ -327,6 +349,18 @@ const openCancelModal = (record: any) => {
         </button>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+  <div className="w-full sm:w-64">
+    <Input
+      type="text"
+      placeholder="Search all columns..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full"
+    />
+  </div>
+</div>
+
       {/* === PENDING TAB === */}
       {tab === "pending" && (
         <Card className="overflow-hidden">
@@ -337,7 +371,16 @@ const openCancelModal = (record: any) => {
               </div>
               <p className="text-lg mt-2">Loading...</p>
             </div>
-          ) : (
+          ) : filterRecords(pending).length === 0 ? (
+      <div className="p-8 text-center text-gray-500">
+        <p className="text-lg font-medium">
+          {searchQuery ? "No matching records found" : "No pending follow-ups"}
+        </p>
+        <p className="text-sm mt-1">
+          {searchQuery ? "Try adjusting your search query" : "All follow-ups have been completed."}
+        </p>
+      </div>
+    ) : (
             <>
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
@@ -366,25 +409,25 @@ const openCancelModal = (record: any) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {pending.map((record) => (
+                     {filterRecords(pending).map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
-  <div className="flex gap-2">
-    <Button
-      onClick={() => handleFollowUp(record)}
-      className="bg-purple-600 hover:bg-purple-700 text-xs flex items-center gap-1"
-    >
-      <MessageSquare className="w-3.5 h-3.5" />
-      Follow-up
-    </Button>
-    <Button
-      onClick={() => openCancelModal(record)}
-      className="bg-red-600 hover:bg-red-700 text-xs flex items-center gap-1"
-    >
-      Cancel Follow-up
-    </Button>
-  </div>
-</td>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleFollowUp(record)}
+                              className="bg-purple-600 hover:bg-purple-700 text-xs flex items-center gap-1"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              Follow-up
+                            </Button>
+                            <Button
+                              onClick={() => openCancelModal(record)}
+                              className="bg-red-600 hover:bg-red-700 text-xs flex items-center gap-1"
+                            >
+                              Cancel Follow-up
+                            </Button>
+                          </div>
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.poNo}</td>
@@ -399,7 +442,7 @@ const openCancelModal = (record: any) => {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {pending.map((record) => (
+                 {filterRecords(pending).map((record) => (
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -443,11 +486,11 @@ const openCancelModal = (record: any) => {
                       Follow-up
                     </Button>
                     <Button
-    onClick={() => openCancelModal(record)}
-    className="w-full bg-red-600 hover:bg-red-700 text-sm flex items-center justify-center gap-2 mt-2"
-  >
-    Cancel Follow-up
-  </Button>
+                      onClick={() => openCancelModal(record)}
+                      className="w-full bg-red-600 hover:bg-red-700 text-sm flex items-center justify-center gap-2 mt-2"
+                    >
+                      Cancel Follow-up
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -466,7 +509,7 @@ const openCancelModal = (record: any) => {
               </div>
               <p className="text-lg mt-2">Loading...</p>
             </div>
-          ) : history.length === 0 ? (
+          ) : filterRecords(history).length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <p className="text-lg font-medium">No follow-up history</p>
               <p className="text-sm mt-1">Followed-up POs will appear here.</p>
@@ -502,7 +545,7 @@ const openCancelModal = (record: any) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {history.map((record) => (
+                     {filterRecords(history).map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
@@ -523,7 +566,7 @@ const openCancelModal = (record: any) => {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {history.map((record) => (
+                {filterRecords(history).map((record) => (
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -557,7 +600,7 @@ const openCancelModal = (record: any) => {
                       </div>
                     </div>
 
-                  
+
                   </div>
                 ))}
               </div>
@@ -610,70 +653,70 @@ const openCancelModal = (record: any) => {
       </Modal>
 
       <Modal
-  isOpen={isCancelOpen}
-  onClose={() => setIsCancelOpen(false)}
-  title="Cancel Record"
-  className="max-w-md w-full mx-4 sm:mx-auto"
->
-  <form onSubmit={handleCancel} className="space-y-4">
-    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-      <p className="text-sm text-yellow-800">
-        Are you sure you want to cancel this record? This action cannot be undone.
-      </p>
-    </div>
-
-    {recordToCancel && (
-      <div className="space-y-2 text-sm">
-        <div className="grid grid-cols-2 gap-2">
-          <span className="text-gray-500">PO No:</span>
-          <span className="font-medium">{recordToCancel.poNo}</span>
-          <span className="text-gray-500">Indent No:</span>
-          <span className="font-medium">{recordToCancel.indentNumber}</span>
-          <span className="text-gray-500">Product No:</span>
-          <span className="font-medium">{recordToCancel.productNo}</span>
-          <span className="text-gray-500">Supplier:</span>
-          <span className="font-medium">{recordToCancel.supplierName}</span>
-          <span className="text-gray-500">Material:</span>
-          <span className="font-medium">{recordToCancel.materialName}</span>
-        </div>
-      </div>
-    )}
-
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Remark
-        <span className="text-red-500 ml-1">*</span>
-      </label>
-      <textarea
-        value={cancelForm.remark}
-        onChange={(e) => setCancelForm({ remark: e.target.value })}
-        placeholder="Enter reason for cancellation..."
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        rows={3}
-        required
-      />
-    </div>
-
-    <div className="flex flex-col gap-3 sm:flex-row pt-2">
-      <Button
-        type="submit"
-        className="flex-1 bg-red-600 hover:bg-red-700"
-        disabled={submitLoading}
+        isOpen={isCancelOpen}
+        onClose={() => setIsCancelOpen(false)}
+        title="Cancel Record"
+        className="max-w-md w-full mx-4 sm:mx-auto"
       >
-        {submitLoading ? "Cancelling..." : "Confirm Cancel"}
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setIsCancelOpen(false)}
-        className="flex-1"
-        disabled={submitLoading}
-      >
-        Go Back
-      </Button>
-    </div>
-  </form>
-</Modal>
+        <form onSubmit={handleCancel} className="space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-yellow-800">
+              Are you sure you want to cancel this record? This action cannot be undone.
+            </p>
+          </div>
+
+          {recordToCancel && (
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <span className="text-gray-500">PO No:</span>
+                <span className="font-medium">{recordToCancel.poNo}</span>
+                <span className="text-gray-500">Indent No:</span>
+                <span className="font-medium">{recordToCancel.indentNumber}</span>
+                <span className="text-gray-500">Product No:</span>
+                <span className="font-medium">{recordToCancel.productNo}</span>
+                <span className="text-gray-500">Supplier:</span>
+                <span className="font-medium">{recordToCancel.supplierName}</span>
+                <span className="text-gray-500">Material:</span>
+                <span className="font-medium">{recordToCancel.materialName}</span>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Remark
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <textarea
+              value={cancelForm.remark}
+              onChange={(e) => setCancelForm({ remark: e.target.value })}
+              placeholder="Enter reason for cancellation..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              rows={3}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row pt-2">
+            <Button
+              type="submit"
+              className="flex-1 bg-red-600 hover:bg-red-700"
+              disabled={submitLoading}
+            >
+              {submitLoading ? "Cancelling..." : "Confirm Cancel"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCancelOpen(false)}
+              className="flex-1"
+              disabled={submitLoading}
+            >
+              Go Back
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

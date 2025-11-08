@@ -55,6 +55,11 @@ export function POIssuePage() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(true); // Separate loading state for table
   const [isCancelOpen, setIsCancelOpen] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+
+
   const [cancelForm, setCancelForm] = useState({
     remark: ""
   });
@@ -417,11 +422,35 @@ export function POIssuePage() {
   };
 
 
+  // Add this function to filter POs based on search query
+// Replace the filterPOs function with this updated version
+const filterPOs = (pos: any[]) => {
+  if (!searchQuery.trim()) return pos;
+  
+  const query = searchQuery.toLowerCase();
+  return pos.filter(po => 
+    String(po.indentNumber || '').toLowerCase().includes(query) ||
+    String(po.productNumber || '').toLowerCase().includes(query) ||
+    String(po.poNo || '').toLowerCase().includes(query) ||
+    String(po.supplierName || '').toLowerCase().includes(query) ||
+    String(po.materialName || '').toLowerCase().includes(query) ||
+    String(po.quantity || '').includes(query) ||
+    String(po.rate || '').includes(query) ||
+    (po.issueDate && String(formatDateForDisplay(po.issueDate) || '').toLowerCase().includes(query)) ||
+    String(po.supplierContact || '').toLowerCase().includes(query) ||
+    String(po.modeOfSend || '').toLowerCase().includes(query) ||
+    String(po.attachmentName || '').toLowerCase().includes(query) ||
+    String(po.status || '').toLowerCase().includes(query)
+  );
+};
+
 
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
       <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Issue PO</h2>
+
+      
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
@@ -445,6 +474,18 @@ export function POIssuePage() {
         </button>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+  <div className="w-full sm:w-64">
+    <Input
+      type="text"
+      placeholder="Search all columns..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full"
+    />
+  </div>
+</div>
+
       {/* === PENDING TAB === */}
       {tab === "pending" && (
         <Card className="overflow-hidden">
@@ -453,7 +494,7 @@ export function POIssuePage() {
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               <span className="ml-2 text-gray-600">Loading POs...</span>
             </div>
-          ) : posPending.length === 0 ? (
+          ) : filterPOs(posPending).length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <p className="text-lg font-medium">No pending POs</p>
               <p className="text-sm mt-1">All indents have been issued.</p>
@@ -485,7 +526,7 @@ export function POIssuePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {posPending.map((po) => (
+                    {filterPOs(posPending).map((po) => (
                       <tr
                         key={po.id}
                         className="hover:bg-gray-50 transition-colors"
@@ -536,7 +577,7 @@ export function POIssuePage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {posPending.map((po) => (
+                {filterPOs(posPending).map((po) => (
                   <div
                     key={po.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -605,7 +646,7 @@ export function POIssuePage() {
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               <span className="ml-2 text-gray-600">Loading history...</span>
             </div>
-          ) : posHistory.length === 0 ? (
+          ) : filterPOs(posHistory).length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <p className="text-lg font-medium">No history</p>
               <p className="text-sm mt-1">Issued POs will appear here.</p>
@@ -637,7 +678,7 @@ export function POIssuePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {posHistory.map((po) => (
+                    {filterPOs(posHistory).map((po) => (
                       <tr
                         key={po.id}
                         className="hover:bg-gray-50 transition-colors"
@@ -688,7 +729,7 @@ export function POIssuePage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {posHistory.map((po) => (
+                {filterPOs(posHistory).map((po) => (
                   <div
                     key={po.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
