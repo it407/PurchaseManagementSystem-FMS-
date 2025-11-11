@@ -10,6 +10,9 @@ import { Eye, Plus } from "lucide-react";
 import { useProcurement } from "@/contexts/procurement-context";
 import { useEffect } from "react"; // Add this import
 
+import { Switch } from "@/components/ui/switch";
+
+
 
 // Reusable Labeled Input (since Input doesn't support label)
 function LabeledInput({
@@ -110,6 +113,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
     supplierName: "",
     materials: [{ materialName: "", quantity: "", rate: "", unit: "" }] as MaterialItem[],
     poNumber: "", // Add this line
+    qcInspectionRequired: true, 
     quantity: "",
     rate: "",
     deliveryDate: "",
@@ -121,6 +125,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
       supplierName: "",
       materials: [{ materialName: "", quantity: "", rate: "", unit: "" }],
       poNumber: "", // Add this line
+      qcInspectionRequired: true,
       quantity: "",
       rate: "",
       deliveryDate: "",
@@ -296,89 +301,177 @@ const filteredIndents = displayedIndents.filter((indent) => {
   };
 
   // Create Indent and submit to Google Sheets
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleCreate = async (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-     const htmlForm = e.target as HTMLFormElement;
+  //    const htmlForm = e.target as HTMLFormElement;
+  // if (!htmlForm.checkValidity()) {
+  //   htmlForm.reportValidity();
+  //   return;
+  // }
+
+
+  //   setLoading(true);
+
+  //   try {
+  //     // Generate indent number
+  //     const indentNumber = await generateIndentNumber();
+
+  //     // Format date to dd/mm/yyyy
+  //     const formatDate = (dateString: string) => {
+  //       const date = new Date(dateString);
+  //       const day = String(date.getDate()).padStart(2, '0');
+  //       const month = String(date.getMonth() + 1).padStart(2, '0');
+  //       const year = date.getFullYear();
+  //       return `${day}/${month}/${year}`;
+  //     };
+
+  //     const timestamp = new Date().toLocaleString();
+  //     const formattedDeliveryDate = formatDate(form.deliveryDate);
+
+  //     // Submit each material as a separate row with product number
+  //     const submissionPromises = form.materials.map(async (material, index) => {
+  //       // Generate product number for each material (1, 2, 3, ...)
+  //       const productNumber = index + 1;
+
+  //       // Prepare row data for Google Sheets with correct column order
+  //       const rowData = [
+  //         timestamp,                    // Column A - Timestamp
+  //         indentNumber,                // Column B - Indent Number (auto-generated)
+  //         productNumber,               // Column C - Product Number (1, 2, 3, ...)
+  //         form.supplierName,           // Column D - Supplier Name
+  //         material.materialName,       // Column E - Material Name
+  //         form.poNumber,               // Column F - PO number (manual)
+  //         `${material.quantity} ${material.unit}`, // Column G - Quantity with unit
+  //         Number(material.rate),       // Column H - Rate
+  //         formattedDeliveryDate        // Column I - Delivery Date (formatted)
+          
+  //       ];
+
+  //       console.log("Submitting data to Google Sheets:", rowData);
+
+  //       // Submit to Google Apps Script
+  //       const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/x-www-form-urlencoded",
+  //         },
+  //         body: new URLSearchParams({
+  //           action: "insert",
+  //           sheetName: "FMS",
+  //           rowData: JSON.stringify(rowData)
+  //         })
+  //       });
+
+  //       return response.json();
+  //     });
+
+  //     const results = await Promise.all(submissionPromises);
+  //     const allSuccess = results.every(result => result.success);
+
+  //     if (allSuccess) {
+  //       resetForm();
+  //       setIsCreateOpen(false);
+  //       console.log("All materials created successfully in Google Sheets");
+  //       await fetchIndentsFromSheet();
+  //     } else {
+  //       console.error("Failed to save some materials to Google Sheets");
+  //       alert("Failed to save some materials. Please check the console for details.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating indent:", error);
+  //     alert("Error creating indent: " + error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+  const handleCreate = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const htmlForm = e.target as HTMLFormElement;
   if (!htmlForm.checkValidity()) {
     htmlForm.reportValidity();
     return;
   }
 
+  setLoading(true);
 
-    setLoading(true);
+  try {
+    // Generate indent number
+    const indentNumber = await generateIndentNumber();
 
-    try {
-      // Generate indent number
-      const indentNumber = await generateIndentNumber();
+    // Format date to dd/mm/yyyy
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
 
-      // Format date to dd/mm/yyyy
-      const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-      };
+    const timestamp = new Date().toLocaleString();
+    const formattedDeliveryDate = formatDate(form.deliveryDate);
 
-      const timestamp = new Date().toLocaleString();
-      const formattedDeliveryDate = formatDate(form.deliveryDate);
+    // Submit each material as a separate row with product number
+    const submissionPromises = form.materials.map(async (material, index) => {
+      // Generate product number for each material (1, 2, 3, ...)
+      const productNumber = index + 1;
 
-      // Submit each material as a separate row with product number
-      const submissionPromises = form.materials.map(async (material, index) => {
-        // Generate product number for each material (1, 2, 3, ...)
-        const productNumber = index + 1;
+      // Create an array with 58 elements (for columns A to BG)
+      const rowData = new Array(58).fill(''); // Initialize all columns as empty
+      
+      // Fill the specific columns with data
+      rowData[0] = timestamp;                    // Column A - Timestamp
+      rowData[1] = indentNumber;                // Column B - Indent Number
+      rowData[2] = productNumber;               // Column C - Product Number
+      rowData[3] = form.supplierName;           // Column D - Supplier Name
+      rowData[4] = material.materialName;       // Column E - Material Name
+      rowData[5] = form.poNumber;               // Column F - PO number
+      rowData[6] = `${material.quantity} ${material.unit}`; // Column G - Quantity with unit
+      rowData[7] = Number(material.rate);       // Column H - Rate
+      rowData[8] = formattedDeliveryDate;       // Column I - Delivery Date
+      rowData[58] = form.qcInspectionRequired ? "Yes" : "No"; // Column BG (index 57) - QC Inspection Required
 
-        // Prepare row data for Google Sheets with correct column order
-        const rowData = [
-          timestamp,                    // Column A - Timestamp
-          indentNumber,                // Column B - Indent Number (auto-generated)
-          productNumber,               // Column C - Product Number (1, 2, 3, ...)
-          form.supplierName,           // Column D - Supplier Name
-          material.materialName,       // Column E - Material Name
-          form.poNumber,               // Column F - PO number (manual)
-          `${material.quantity} ${material.unit}`, // Column G - Quantity with unit
-          Number(material.rate),       // Column H - Rate
-          formattedDeliveryDate        // Column I - Delivery Date (formatted)
-        ];
+      console.log("Submitting data to Google Sheets:", rowData);
+      console.log("QC Inspection going to column BG (index 57):", rowData[57]);
 
-        console.log("Submitting data to Google Sheets:", rowData);
-
-        // Submit to Google Apps Script
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            action: "insert",
-            sheetName: "FMS",
-            rowData: JSON.stringify(rowData)
-          })
-        });
-
-        return response.json();
+      // Submit to Google Apps Script
+      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          action: "insert",
+          sheetName: "FMS",
+          rowData: JSON.stringify(rowData)
+        })
       });
 
-      const results = await Promise.all(submissionPromises);
-      const allSuccess = results.every(result => result.success);
+      return response.json();
+    });
 
-      if (allSuccess) {
-        resetForm();
-        setIsCreateOpen(false);
-        console.log("All materials created successfully in Google Sheets");
-        await fetchIndentsFromSheet();
-      } else {
-        console.error("Failed to save some materials to Google Sheets");
-        alert("Failed to save some materials. Please check the console for details.");
-      }
-    } catch (error) {
-      console.error("Error creating indent:", error);
-      alert("Error creating indent: " + error);
-    } finally {
-      setLoading(false);
+    const results = await Promise.all(submissionPromises);
+    const allSuccess = results.every(result => result.success);
+
+    if (allSuccess) {
+      resetForm();
+      setIsCreateOpen(false);
+      console.log("All materials created successfully in Google Sheets");
+      await fetchIndentsFromSheet();
+    } else {
+      console.error("Failed to save some materials to Google Sheets");
+      alert("Failed to save some materials. Please check the console for details.");
     }
-  };
+  } catch (error) {
+    console.error("Error creating indent:", error);
+    alert("Error creating indent: " + error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchIndentsFromSheet = async () => {
     try {
@@ -668,6 +761,24 @@ const filteredIndents = displayedIndents.filter((indent) => {
             placeholder="PO-2024-001"
             required
           />
+
+          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                QC Inspection Required
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                {form.qcInspectionRequired ? "Yes - QC inspection will be required" : "No - QC inspection not required"}
+              </p>
+            </div>
+            <Switch
+              checked={form.qcInspectionRequired}
+              onCheckedChange={(checked) =>
+                setForm((f) => ({ ...f, qcInspectionRequired: checked }))
+              }
+              className="data-[state=checked]:bg-blue-600"
+            />
+          </div>
 
 
           {/* Materials Section */}
