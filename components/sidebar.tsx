@@ -82,10 +82,10 @@ const getFilteredMenuItems = () => {
           }`}
         >
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
+            <span className="text-white font-bold text-sm">F</span>
           </div>
           <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent whitespace-nowrap">
-            Procurement
+            FMS
           </h2>
         </div>
 

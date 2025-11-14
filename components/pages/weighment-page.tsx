@@ -50,7 +50,10 @@ interface Record {
   poNo: string;
   indentNumber: string;
   productNo: string;
+  supplierName: string;
   materialName: string;
+  quantity: string;
+  rate?: string;
   status: string;
   slipNo?: string;
   grossWeight?: string;
@@ -101,7 +104,7 @@ export function WeighmentPage() {
         const historyRecords: Record[] = [];
 
         // Process rows (skip header rows - start from row 6)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
 
           // Column Y (Planned4) is index 24, Column Z (Actual4) is index 25
@@ -115,7 +118,10 @@ export function WeighmentPage() {
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
               poNo: row[4] || `PO-${i + 1}`,
+              supplierName: row[3] || "Supplier",
               materialName: row[3] || "Material",
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               status: "Received",
               rowIndex: i + 1,
             });
@@ -127,7 +133,10 @@ export function WeighmentPage() {
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
               poNo: row[4] || `PO-${i + 1}`,
+              supplierName: row[3] || "Supplier",
               materialName: row[2] || "Material",
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               slipNo: row[26] || `WS-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AA
               grossWeight: row[27] || "0", // Column AB
               tareWeight: row[28] || "0", // Column AC
@@ -160,66 +169,22 @@ export function WeighmentPage() {
     setIsModalOpen(true);
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!selectedRecord) return;
-
-  //   setSubmitLoading(true);
-  //   try {
-  //     // Get current date in dd/mm/yyyy format
-  //     const now = new Date();
-  //     const day = String(now.getDate()).padStart(2, '0');
-  //     const month = String(now.getMonth() + 1).padStart(2, '0');
-  //     const year = now.getFullYear();
-  //     const timestamp = new Date().toLocaleString();
-
-
-  //     // Calculate net weight
-  //     const gross = Number(formData.grossWeight);
-  //     const tare = Number(formData.tareWeight);
-  //     const net = gross - tare;
-
-  //     // Prepare data for submission
-  //     const submissionData = {
-  //       action: "update",
-  //       sheetId: "1MtxLluyxLJwDV_2fxw4qG0wUOBE4Ys8Wd_ewLeP9czA",
-  //       sheetName: "FMS",
-  //       rowIndex: selectedRecord.rowIndex,
-  //       columnData: {
-  //         "AB": timestamp, // Column Z - Actual4 (current date)
-  //         "AC": formData.grossWeight, // Column AA - Gross Weight
-  //         "AD": formData.tareWeight, // Column AB - Tare Weight
-  //         "AE": net.toString(), // Column AC - Net Weight (calculated)
-  //         "AF": formData.verifiedBy, // Column AD - Verified By
-  //       }
-  //     };
-
-  //     // Submit to Google Sheets
-  //     await fetch(
-  //       "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec",
-  //       {
-  //         method: "POST",
-  //         mode: "no-cors",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(submissionData),
-  //       }
-  //     );
-
-  //     // Refresh data after a short delay
-  //     setTimeout(async () => {
-  //       await fetchData();
-  //       setIsModalOpen(false);
-  //       setSelectedRecord(null);
-  //       setSubmitLoading(false);
-  //     }, 1500);
-
-  //   } catch (error) {
-  //     console.error("Error submitting data:", error);
-  //     setSubmitLoading(false);
-  //   }
-  // };
+const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -228,7 +193,9 @@ export function WeighmentPage() {
 
     setSubmitLoading(true);
     try {
-      const timestamp = new Date().toLocaleString();
+      // const timestamp = new Date().toLocaleString();
+      const timestamp = formatTimestamp();
+
 
       // Calculate net weight
       const gross = Number(formData.grossWeight);
@@ -288,11 +255,11 @@ export function WeighmentPage() {
         sheetName: "FMS",
         rowIndex: selectedRecord.rowIndex,
         columnData: {
-          "AB": timestamp, // Column Z - Actual4 (current date)
-          "AC": formData.grossWeight, // Column AA - Gross Weight
-          "AD": formData.tareWeight, // Column AB - Tare Weight
-          "AE": net.toString(), // Column AC - Net Weight (calculated)
-          "AF": formData.verifiedBy, // Column AD - Verified By
+          "AC": timestamp, // Column Z - Actual4 (current date)
+          "AD": formData.grossWeight, // Column AA - Gross Weight
+          "AE": formData.tareWeight, // Column AB - Tare Weight
+          "AF": net.toString(), // Column AC - Net Weight (calculated)
+          "AG": formData.verifiedBy, // Column AD - Verified By
           "AH": fileLink, // Column AH - Attachment File
         }
       };
@@ -368,10 +335,10 @@ export function WeighmentPage() {
         serialNumber,
         recordToCancel.indentNumber,
         recordToCancel.productNo,
-        "N/A", // supplierName (not available in this context)
+        recordToCancel.supplierName,
         recordToCancel.materialName,
-        "0", // quantity (not available in this context)
-        "0", // rate (not available in this context)
+        recordToCancel.quantity,
+        recordToCancel.rate,
         "Weighment", // Stage
         cancelForm.remark
       ];
@@ -892,8 +859,14 @@ const filteredHistory = filterRecords(history);
                 <span className="font-medium">{recordToCancel.indentNumber}</span>
                 <span className="text-gray-500">Product No:</span>
                 <span className="font-medium">{recordToCancel.productNo}</span>
+                <span className="text-gray-500">Supplier:</span>
+                <span className="font-medium">{recordToCancel.supplierName}</span>
                 <span className="text-gray-500">Material:</span>
                 <span className="font-medium">{recordToCancel.materialName}</span>
+                <span className="text-gray-500">Quantity:</span>
+                <span className="font-medium">{recordToCancel.quantity}</span>
+                <span className="text-gray-500">Rate:</span>
+                <span className="font-medium">{recordToCancel.rate}</span>
                 <span className="text-gray-500">Status:</span>
                 <span className="font-medium">{recordToCancel.status}</span>
               </div>

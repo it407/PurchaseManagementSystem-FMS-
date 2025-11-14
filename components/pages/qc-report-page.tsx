@@ -166,7 +166,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         const historyRecords: QCReportRecord[] = [];
 
         // Process rows (skip header rows - start from row 6)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
           
           // Column AX (Planned8) is index 49, Column AY (Actual8) is index 50

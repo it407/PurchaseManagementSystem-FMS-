@@ -10,9 +10,10 @@ import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { CancelDataTable } from "../pages/canceltable"; // Adjust path as needed
 
+import DelayAnalysis from "../pages/dealy-analysis";
+
+
 export function Dashboard() {
-  const [viewType, setViewType] = useState<"total" | "pending">("total");
-  const [timeRange, setTimeRange] = useState<"weekly" | "monthly" | "yearly">("weekly");
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,8 +50,9 @@ export function Dashboard() {
     }
   };
 
+
   // Frontend mein hi data calculate karo
- const calculateDashboardData = (data: any[]) => {
+  const calculateDashboardData = (data: any[]) => {
     console.log("Calculating dashboard data from", data.length, "rows");
 
     // Updated Column indexes (0-based) as per your requirements
@@ -63,7 +65,27 @@ export function Dashboard() {
       QC: 36, // Column AK (changed from 34 to 36)
       MATERIAL_UNLOADING: 43, // Column AR (changed from 41 to 43)
       SUBMIT_BILL: 48, // Column AW (changed from 46 to 48)
-      BILL_ENTRY_ERP: 53 // Column BB (new column)
+      BILL_ENTRY_ERP: 53, // Column BB (new column)
+
+      // New condition columns - aapke bataye columns
+      ISSUE_PO_CONDITION: 9, // Column I
+      FOLLOW_UP_CONDITION: 16, // Column P  
+      GATE_ENTRY_CONDITION: 21, // Column U
+      WEIGHMENT_CONDITION: 27, // Column AB
+      QC_CONDITION: 35, // Column AJ
+      MATERIAL_UNLOADING_CONDITION: 42, // Column AQ
+      SUBMIT_BILL_CONDITION: 47, // Column AV
+      BILL_ENTRY_ERP_CONDITION: 52, // Column BA
+
+      // Delay columns
+      ISSUE_PO_DELAY: 15, // Column P
+      FOLLOW_UP_DELAY: 20, // Column U
+      GATE_ENTRY_DELAY: 26, // Column AA
+      WEIGHMENT_DELAY: 34, // Column AI
+      QC_DELAY: 41, // Column AP
+      MATERIAL_UNLOADING_DELAY: 46, // Column AU
+      SUBMIT_BILL_DELAY: 51, // Column AZ
+      BILL_ENTRY_ERP_DELAY: 56 // Column BE
     };
 
     let result = {
@@ -83,56 +105,209 @@ export function Dashboard() {
       pendingQC: 0,
       pendingMaterialUnloading: 0,
       pendingSubmitBill: 0,
-      pendingBillEntryERP: 0
+      pendingBillEntryERP: 0,
+      // Delay counts
+      delayIssuePO: 0,
+      delayFollowUp: 0,
+      delayGateEntry: 0,
+      delayWeighment: 0,
+      delayQC: 0,
+      delayMaterialUnloading: 0,
+      delaySubmitBill: 0,
+      delayBillEntryERP: 0
+    };
+
+    // Helper function to check if value exists
+    const hasValue = (value: any) => {
+      return value && value.toString().trim() !== "" && value.toString().trim().toLowerCase() !== "null";
+    };
+
+    // NEW: Helper function to check if delay value is positive (contains "+")
+    // SIMPLE: Helper function to check if delay value contains "+" sign
+    // Helper function to check if delay value is positive
+    const isPositiveDelay = (value: any) => {
+      if (!hasValue(value)) {
+        console.log("Delay value is empty/null");
+        return false;
+      }
+
+      const strValue = value.toString().trim();
+      console.log("Checking delay value:", strValue);
+
+      // Check if it's ISO date format (from Google Sheets)
+      if (strValue.includes('T') && strValue.includes('Z')) {
+        try {
+          const date = new Date(strValue);
+          // Google Sheets stores time as days since 1899-12-30
+          const baseDate = new Date('1899-12-30T00:00:00.000Z');
+          const diffMs = date.getTime() - baseDate.getTime();
+          const diffSeconds = Math.floor(diffMs / 1000);
+
+          console.log(`ISO Date Delay: ${strValue} -> Seconds: ${diffSeconds} (Positive: ${diffSeconds > 0})`);
+          return diffSeconds > 0;
+        } catch (e) {
+          console.log("Failed to parse ISO date:", e);
+          return false;
+        }
+      }
+
+      // Check if value contains "+" sign (for time format like "+4:02:56")
+      const hasPlus = strValue.includes('+');
+      console.log("Has + sign:", hasPlus);
+
+      return hasPlus;
     };
 
     // Row 6 se start karo (headers skip karo)
-    for (let i = 6; i < data.length; i++) {
+    for (let i = 7; i < data.length; i++) {
       const row = data[i];
 
-      // Total counts (any non-empty value)
-      if (row[COLUMNS.PO] && row[COLUMNS.PO].toString().trim() !== "") result.totalPO++;
-      if (row[COLUMNS.ISSUE_PO] && row[COLUMNS.ISSUE_PO].toString().trim() !== "") result.totalIssuePO++;
-      if (row[COLUMNS.FOLLOW_UP] && row[COLUMNS.FOLLOW_UP].toString().trim() !== "") result.totalFollowUp++;
-      if (row[COLUMNS.GATE_ENTRY] && row[COLUMNS.GATE_ENTRY].toString().trim() !== "") result.totalGateEntry++;
-      if (row[COLUMNS.WEIGHMENT] && row[COLUMNS.WEIGHMENT].toString().trim() !== "") result.totalWeighment++;
-      if (row[COLUMNS.QC] && row[COLUMNS.QC].toString().trim() !== "") result.totalQC++;
-      if (row[COLUMNS.MATERIAL_UNLOADING] && row[COLUMNS.MATERIAL_UNLOADING].toString().trim() !== "") result.totalMaterialUnloading++;
-      if (row[COLUMNS.SUBMIT_BILL] && row[COLUMNS.SUBMIT_BILL].toString().trim() !== "") result.totalSubmitBill++;
-      if (row[COLUMNS.BILL_ENTRY_ERP] && row[COLUMNS.BILL_ENTRY_ERP].toString().trim() !== "") result.totalBillEntryERP++;
 
-      // Pending counts (empty or "Null" values)
-      if (!row[COLUMNS.ISSUE_PO] || row[COLUMNS.ISSUE_PO].toString().trim() === "" || row[COLUMNS.ISSUE_PO].toString().trim().toLowerCase() === "null") {
-        result.pendingIssuePO++;
+      // Total counts (any non-empty value)
+      if (hasValue(row[COLUMNS.PO])) result.totalPO++;
+
+      // Issue PO - count only if condition column has value
+      if (hasValue(row[COLUMNS.ISSUE_PO_CONDITION])) {
+        if (hasValue(row[COLUMNS.ISSUE_PO])) result.totalIssuePO++;
       }
-      if (!row[COLUMNS.FOLLOW_UP] || row[COLUMNS.FOLLOW_UP].toString().trim() === "" || row[COLUMNS.FOLLOW_UP].toString().trim().toLowerCase() === "null") {
-        result.pendingFollowUp++;
+
+      // Follow Up - count only if condition column has value  
+      if (hasValue(row[COLUMNS.FOLLOW_UP_CONDITION])) {
+        if (hasValue(row[COLUMNS.FOLLOW_UP])) result.totalFollowUp++;
       }
-      if (!row[COLUMNS.GATE_ENTRY] || row[COLUMNS.GATE_ENTRY].toString().trim() === "" || row[COLUMNS.GATE_ENTRY].toString().trim().toLowerCase() === "null") {
-        result.pendingGateEntry++;
+
+      // Gate Entry - count only if condition column has value
+      if (hasValue(row[COLUMNS.GATE_ENTRY_CONDITION])) {
+        if (hasValue(row[COLUMNS.GATE_ENTRY])) result.totalGateEntry++;
       }
-      if (!row[COLUMNS.WEIGHMENT] || row[COLUMNS.WEIGHMENT].toString().trim() === "" || row[COLUMNS.WEIGHMENT].toString().trim().toLowerCase() === "null") {
-        result.pendingWeighment++;
+
+      // Weighment - count only if condition column has value
+      if (hasValue(row[COLUMNS.WEIGHMENT_CONDITION])) {
+        if (hasValue(row[COLUMNS.WEIGHMENT])) result.totalWeighment++;
       }
-      if (!row[COLUMNS.QC] || row[COLUMNS.QC].toString().trim() === "" || row[COLUMNS.QC].toString().trim().toLowerCase() === "null") {
-        result.pendingQC++;
+
+      // QC - count only if condition column has value
+      if (hasValue(row[COLUMNS.QC_CONDITION])) {
+        if (hasValue(row[COLUMNS.QC])) result.totalQC++;
       }
-      if (!row[COLUMNS.MATERIAL_UNLOADING] || row[COLUMNS.MATERIAL_UNLOADING].toString().trim() === "" || row[COLUMNS.MATERIAL_UNLOADING].toString().trim().toLowerCase() === "null") {
-        result.pendingMaterialUnloading++;
+
+      // Material Unloading - count only if condition column has value
+      if (hasValue(row[COLUMNS.MATERIAL_UNLOADING_CONDITION])) {
+        if (hasValue(row[COLUMNS.MATERIAL_UNLOADING])) result.totalMaterialUnloading++;
       }
-      if (!row[COLUMNS.SUBMIT_BILL] || row[COLUMNS.SUBMIT_BILL].toString().trim() === "" || row[COLUMNS.SUBMIT_BILL].toString().trim().toLowerCase() === "null") {
-        result.pendingSubmitBill++;
+
+      // Submit Bill - count only if condition column has value
+      if (hasValue(row[COLUMNS.SUBMIT_BILL_CONDITION])) {
+        if (hasValue(row[COLUMNS.SUBMIT_BILL])) result.totalSubmitBill++;
       }
-      if (!row[COLUMNS.BILL_ENTRY_ERP] || row[COLUMNS.BILL_ENTRY_ERP].toString().trim() === "" || row[COLUMNS.BILL_ENTRY_ERP].toString().trim().toLowerCase() === "null") {
-        result.pendingBillEntryERP++;
+
+      // Bill Entry ERP - count only if condition column has value
+      if (hasValue(row[COLUMNS.BILL_ENTRY_ERP_CONDITION])) {
+        if (hasValue(row[COLUMNS.BILL_ENTRY_ERP])) result.totalBillEntryERP++;
+      }
+
+      // Pending counts (empty or "Null" values) - with condition check
+      if (hasValue(row[COLUMNS.ISSUE_PO_CONDITION])) {
+        if (!hasValue(row[COLUMNS.ISSUE_PO])) {
+          result.pendingIssuePO++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.FOLLOW_UP_CONDITION])) {
+        if (!hasValue(row[COLUMNS.FOLLOW_UP])) {
+          result.pendingFollowUp++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.GATE_ENTRY_CONDITION])) {
+        if (!hasValue(row[COLUMNS.GATE_ENTRY])) {
+          result.pendingGateEntry++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.WEIGHMENT_CONDITION])) {
+        if (!hasValue(row[COLUMNS.WEIGHMENT])) {
+          result.pendingWeighment++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.QC_CONDITION])) {
+        if (!hasValue(row[COLUMNS.QC])) {
+          result.pendingQC++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.MATERIAL_UNLOADING_CONDITION])) {
+        if (!hasValue(row[COLUMNS.MATERIAL_UNLOADING])) {
+          result.pendingMaterialUnloading++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.SUBMIT_BILL_CONDITION])) {
+        if (!hasValue(row[COLUMNS.SUBMIT_BILL])) {
+          result.pendingSubmitBill++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.BILL_ENTRY_ERP_CONDITION])) {
+        if (!hasValue(row[COLUMNS.BILL_ENTRY_ERP])) {
+          result.pendingBillEntryERP++;
+        }
+      }
+
+      // Delay counts (ONLY positive values with "+" sign) - with condition check
+      if (hasValue(row[COLUMNS.ISSUE_PO_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.ISSUE_PO_DELAY])) {
+          result.delayIssuePO++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.FOLLOW_UP_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.FOLLOW_UP_DELAY])) {
+          result.delayFollowUp++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.GATE_ENTRY_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.GATE_ENTRY_DELAY])) {
+          result.delayGateEntry++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.WEIGHMENT_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.WEIGHMENT_DELAY])) {
+          result.delayWeighment++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.QC_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.QC_DELAY])) {
+          result.delayQC++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.MATERIAL_UNLOADING_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.MATERIAL_UNLOADING_DELAY])) {
+          result.delayMaterialUnloading++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.SUBMIT_BILL_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.SUBMIT_BILL_DELAY])) {
+          result.delaySubmitBill++;
+        }
+      }
+
+      if (hasValue(row[COLUMNS.BILL_ENTRY_ERP_CONDITION])) {
+        if (isPositiveDelay(row[COLUMNS.BILL_ENTRY_ERP_DELAY])) {
+          result.delayBillEntryERP++;
+        }
       }
     }
 
     console.log("Calculated dashboard data:", result);
     setDashboardData(result);
   };
-
-
 
   // Get current user info
   const getCurrentUser = () => {
@@ -148,29 +323,12 @@ export function Dashboard() {
   const userRole = user?.role || "user";
   const userName = user?.name || "User";
 
-  // Mock data for development (remove when API is working)
-  const mockData = {
-    totalPO: 45,
-    totalIssuePO: 38,
-    totalFollowUp: 32,
-    totalMaterialReceiving: 28,
-    totalWeighment: 25,
-    totalQC: 22,
-    totalMaterialUnloading: 20,
-    totalSubmitBill: 18,
-    pendingIssuePO: 7,
-    pendingFollowUp: 6,
-    pendingMaterialReceiving: 5,
-    pendingWeighment: 4,
-    pendingQC: 3,
-    pendingMaterialUnloading: 2,
-    pendingSubmitBill: 1,
-  };
-
- const stats = viewType === "total" ? [
+  const stats = [
     {
       label: "Total PO",
       value: dashboardData?.totalPO || 0,
+      pending: 0, // PO me pending nahi hota
+      delay: 0, // PO me delay nahi hota
       icon: Package,
       color: "text-blue-600",
       bg: "bg-blue-50",
@@ -178,6 +336,8 @@ export function Dashboard() {
     {
       label: "Total Issue PO",
       value: dashboardData?.totalIssuePO || 0,
+      pending: dashboardData?.pendingIssuePO || 0,
+      delay: dashboardData?.delayIssuePO || 0,
       icon: FileText,
       color: "text-green-600",
       bg: "bg-green-50",
@@ -185,6 +345,8 @@ export function Dashboard() {
     {
       label: "Total Follow Up",
       value: dashboardData?.totalFollowUp || 0,
+      pending: dashboardData?.pendingFollowUp || 0,
+      delay: dashboardData?.delayFollowUp || 0,
       icon: Clock,
       color: "text-purple-600",
       bg: "bg-purple-50",
@@ -192,6 +354,8 @@ export function Dashboard() {
     {
       label: "Total Gate Entry",
       value: dashboardData?.totalGateEntry || 0,
+      pending: dashboardData?.pendingGateEntry || 0,
+      delay: dashboardData?.delayGateEntry || 0,
       icon: Package,
       color: "text-orange-600",
       bg: "bg-orange-50",
@@ -199,6 +363,8 @@ export function Dashboard() {
     {
       label: "Total Weighment",
       value: dashboardData?.totalWeighment || 0,
+      pending: dashboardData?.pendingWeighment || 0,
+      delay: dashboardData?.delayWeighment || 0,
       icon: BarChart3,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
@@ -206,6 +372,8 @@ export function Dashboard() {
     {
       label: "Total Quality Check",
       value: dashboardData?.totalQC || 0,
+      pending: dashboardData?.pendingQC || 0,
+      delay: dashboardData?.delayQC || 0,
       icon: AlertCircle,
       color: "text-amber-600",
       bg: "bg-amber-50",
@@ -213,6 +381,8 @@ export function Dashboard() {
     {
       label: "Total Material Unloading",
       value: dashboardData?.totalMaterialUnloading || 0,
+      pending: dashboardData?.pendingMaterialUnloading || 0,
+      delay: dashboardData?.delayMaterialUnloading || 0,
       icon: Package,
       color: "text-cyan-600",
       bg: "bg-cyan-50",
@@ -220,6 +390,8 @@ export function Dashboard() {
     {
       label: "Total Submit Bill",
       value: dashboardData?.totalSubmitBill || 0,
+      pending: dashboardData?.pendingSubmitBill || 0,
+      delay: dashboardData?.delaySubmitBill || 0,
       icon: FileText,
       color: "text-red-600",
       bg: "bg-red-50",
@@ -227,71 +399,13 @@ export function Dashboard() {
     {
       label: "Total Bill Entry ERP",
       value: dashboardData?.totalBillEntryERP || 0,
-      icon: FileText,
-      color: "text-pink-600",
-      bg: "bg-pink-50",
-    }
-  ] : [
-    {
-      label: "Pending Issue PO",
-      value: dashboardData?.pendingIssuePO || 0,
-      icon: FileText,
-      color: "text-green-600",
-      bg: "bg-green-50",
-    },
-    {
-      label: "Pending Follow Up",
-      value: dashboardData?.pendingFollowUp || 0,
-      icon: Clock,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
-    },
-    {
-      label: "Pending Gate Entry",
-      value: dashboardData?.pendingGateEntry || 0,
-      icon: Package,
-      color: "text-orange-600",
-      bg: "bg-orange-50",
-    },
-    {
-      label: "Pending Weighment",
-      value: dashboardData?.pendingWeighment || 0,
-      icon: BarChart3,
-      color: "text-indigo-600",
-      bg: "bg-indigo-50",
-    },
-    {
-      label: "Pending Quality Check",
-      value: dashboardData?.pendingQC || 0,
-      icon: AlertCircle,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
-    },
-    {
-      label: "Pending Material Unloading",
-      value: dashboardData?.pendingMaterialUnloading || 0,
-      icon: Package,
-      color: "text-cyan-600",
-      bg: "bg-cyan-50",
-    },
-    {
-      label: "Pending Submit Bill",
-      value: dashboardData?.pendingSubmitBill || 0,
-      icon: FileText,
-      color: "text-red-600",
-      bg: "bg-red-50",
-    },
-    {
-      label: "Pending Bill Entry ERP",
-      value: dashboardData?.pendingBillEntryERP || 0,
+      pending: dashboardData?.pendingBillEntryERP || 0,
+      delay: dashboardData?.delayBillEntryERP || 0,
       icon: FileText,
       color: "text-pink-600",
       bg: "bg-pink-50",
     }
   ];
-
-  // Rest of the component remains the same...
-  // [Previous JSX code remains unchanged]
 
   // Sample recent activity data
   const recentActivity = [
@@ -350,68 +464,88 @@ export function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Welcome, {userName} • {userRole === "admin" ? "All Users Data" : "Your Data"} • {viewType === "total" ? "Total Tasks" : "Pending Tasks"}
+            Welcome, {userName} • {userRole === "admin" ? "All Users Data" : "Your Data"}
           </p>
         </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Time Range Filter */}
-
-          {/* View Type Toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={viewType === "total" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewType("total")}
-              className={`text-xs ${viewType === "total"
-                ? "bg-white shadow-sm text-black hover:text-white"
-                : "text-black hover:text-white"
-                }`}
-            >
-              Total Task
-            </Button>
-
-            <Button
-              variant={viewType === "pending" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewType("pending")}
-              className={`text-xs ${viewType === "pending"
-                ? "bg-white shadow-sm text-black hover:text-white"
-                : "text-black hover:text-white"
-                }`}
-            >
-              Pending Task
-            </Button>
-
-          </div>
-
-          <Badge variant="secondary" className="hidden sm:inline-flex">
-            {format(new Date(), "EEEE, MMMM d")}
-          </Badge>
-        </div>
+        <Badge variant="secondary" className="hidden sm:inline-flex">
+          {format(new Date(), "EEEE, MMMM d")}
+        </Badge>
       </div>
 
-
-
-      {/* Stats Grid - 8 Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+      {/* Stats Grid - 9 Cards */}
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((stat, i) => (
           <Card
             key={i}
-            className="group relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all duration-200"
+            className="border border-gray-200 bg-white shadow-sm rounded-2xl transition-all duration-200"
           >
-            <div className="p-4 sm:p-5">
-              <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${stat.bg} mb-3`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+            <div className="p-5">
+            
+              <div
+                className={`flex items-center justify-center w-12 h-12 rounded-xl ${stat.bg} mb-4`}
+              >
+                <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.label}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+
+              
+              <p className="text-sm font-medium text-gray-600 tracking-wide">
+                {stat.label}
+              </p>
+              <p className="text-3xl font-semibold text-gray-900 mt-1 leading-tight">
+                {stat.value}
+              </p>
+
+              
+              <div className="flex justify-between mt-3 text-base">
+                <div className="text-blue-600 font-semibold">
+                  <span>Pending:</span> {stat.pending}
+                </div>
+                <div className="text-rose-600 font-semibold">
+                  <span>Delay:</span> {stat.delay}
+                </div>
+              </div>
             </div>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity" />
           </Card>
         ))}
+      </div> */}
+
+      {/* Stats Grid - 9 Cards */}
+<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+  {stats.map((stat, i) => (
+    <Card
+      key={i}
+      className="border border-gray-200 bg-white shadow-sm rounded-xl sm:rounded-2xl transition-all duration-200"
+    >
+      <div className="p-3 sm:p-5">
+        {/* Icon Section */}
+        <div
+          className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl ${stat.bg} mb-3 sm:mb-4`}
+        >
+          <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color}`} />
+        </div>
+
+        {/* Label and Value */}
+        <p className="text-sm font-medium text-gray-600 tracking-wide">
+          {stat.label}
+        </p>
+        <p className="text-2xl sm:text-3xl font-semibold text-gray-900 mt-1 leading-tight">
+          {stat.value}
+        </p>
+
+        {/* Pending and Delay Info */}
+        <div className="flex justify-between mt-3 text-sm">
+          <div className="text-blue-600 font-semibold">
+            Pending: {stat.pending}
+          </div>
+          <div className="text-rose-600 font-semibold">
+            Delay: {stat.delay}
+          </div>
+        </div>
       </div>
+    </Card>
+  ))}
+</div>
+
 
       {/* Charts Section */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -419,29 +553,22 @@ export function Dashboard() {
         <Card className="p-4 sm:p-5 border-0 shadow-sm">
           <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
-            {viewType === "total" ? "Total Tasks Distribution" : "Pending Tasks Distribution"}
+            Total Tasks Distribution
           </h3>
           <div className="h-80 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={viewType === "total" ? [
-                    { name: 'PO', value: dashboardData?.totalPO || mockData.totalPO },
-                    { name: 'Issue PO', value: dashboardData?.totalIssuePO || mockData.totalIssuePO },
-                    { name: 'Follow Up', value: dashboardData?.totalFollowUp || mockData.totalFollowUp },
-                    { name: 'Material Receiving', value: dashboardData?.totalMaterialReceiving || mockData.totalMaterialReceiving },
-                    { name: 'Weighment', value: dashboardData?.totalWeighment || mockData.totalWeighment },
-                    { name: 'QC', value: dashboardData?.totalQC || mockData.totalQC },
-                    { name: 'Material Unloading', value: dashboardData?.totalMaterialUnloading || mockData.totalMaterialUnloading },
-                    { name: 'Submit Bill', value: dashboardData?.totalSubmitBill || mockData.totalSubmitBill }
-                  ] : [
-                    { name: 'Issue PO', value: dashboardData?.pendingIssuePO || mockData.pendingIssuePO },
-                    { name: 'Follow Up', value: dashboardData?.pendingFollowUp || mockData.pendingFollowUp },
-                    { name: 'Material Receiving', value: dashboardData?.pendingMaterialReceiving || mockData.pendingMaterialReceiving },
-                    { name: 'Weighment', value: dashboardData?.pendingWeighment || mockData.pendingWeighment },
-                    { name: 'QC', value: dashboardData?.pendingQC || mockData.pendingQC },
-                    { name: 'Material Unloading', value: dashboardData?.pendingMaterialUnloading || mockData.pendingMaterialUnloading },
-                    { name: 'Submit Bill', value: dashboardData?.pendingSubmitBill || mockData.pendingSubmitBill }
+                  data={[
+                    { name: 'PO', value: dashboardData?.totalPO || 0 },
+                    { name: 'Issue PO', value: dashboardData?.totalIssuePO || 0 },
+                    { name: 'Follow Up', value: dashboardData?.totalFollowUp || 0 },
+                    { name: 'Gate Entry', value: dashboardData?.totalGateEntry || 0 },
+                    { name: 'Weighment', value: dashboardData?.totalWeighment || 0 },
+                    { name: 'QC', value: dashboardData?.totalQC || 0 },
+                    { name: 'Material Unloading', value: dashboardData?.totalMaterialUnloading || 0 },
+                    { name: 'Submit Bill', value: dashboardData?.totalSubmitBill || 0 },
+                    { name: 'Bill Entry ERP', value: dashboardData?.totalBillEntryERP || 0 }
                   ]}
                   cx="50%"
                   cy="42%"
@@ -452,7 +579,7 @@ export function Dashboard() {
                   dataKey="value"
                   className="text-[10px] sm:text-xs"
                 >
-                  {(viewType === "total" ? [
+                  {[
                     '#3b82f6', // blue-500
                     '#10b981', // green-500  
                     '#8b5cf6', // purple-500
@@ -460,16 +587,9 @@ export function Dashboard() {
                     '#6366f1', // indigo-500
                     '#f59e0b', // amber-500
                     '#06b6d4', // cyan-500
-                    '#ef4444'  // red-500
-                  ] : [
-                    '#10b981', // green-500
-                    '#8b5cf6', // purple-500
-                    '#f59e0b', // orange-500
-                    '#6366f1', // indigo-500
-                    '#f59e0b', // amber-500
-                    '#06b6d4', // cyan-500
-                    '#ef4444'  // red-500
-                  ]).map((color, index) => (
+                    '#ef4444', // red-500
+                    '#ec4899'  // pink-500
+                  ].map((color, index) => (
                     <Cell key={`cell-${index}`} fill={color} />
                   ))}
                 </Pie>
@@ -504,23 +624,16 @@ export function Dashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={viewType === "total" ? [
-                  { name: 'PO', value: dashboardData?.totalPO || mockData.totalPO },
-                  { name: 'Issue PO', value: dashboardData?.totalIssuePO || mockData.totalIssuePO },
-                  { name: 'Follow Up', value: dashboardData?.totalFollowUp || mockData.totalFollowUp },
-                  { name: 'Material Receiving', value: dashboardData?.totalMaterialReceiving || mockData.totalMaterialReceiving },
-                  { name: 'Weighment', value: dashboardData?.totalWeighment || mockData.totalWeighment },
-                  { name: 'QC', value: dashboardData?.totalQC || mockData.totalQC },
-                  { name: 'Material Unloading', value: dashboardData?.totalMaterialUnloading || mockData.totalMaterialUnloading },
-                  { name: 'Submit Bill', value: dashboardData?.totalSubmitBill || mockData.totalSubmitBill }
-                ] : [
-                  { name: 'Issue PO', value: dashboardData?.pendingIssuePO || mockData.pendingIssuePO },
-                  { name: 'Follow Up', value: dashboardData?.pendingFollowUp || mockData.pendingFollowUp },
-                  { name: 'Material Receiving', value: dashboardData?.pendingMaterialReceiving || mockData.pendingMaterialReceiving },
-                  { name: 'Weighment', value: dashboardData?.pendingWeighment || mockData.pendingWeighment },
-                  { name: 'QC', value: dashboardData?.pendingQC || mockData.pendingQC },
-                  { name: 'Material Unloading', value: dashboardData?.pendingMaterialUnloading || mockData.pendingMaterialUnloading },
-                  { name: 'Submit Bill', value: dashboardData?.pendingSubmitBill || mockData.pendingSubmitBill }
+                data={[
+                  { name: 'PO', value: dashboardData?.totalPO || 0 },
+                  { name: 'Issue PO', value: dashboardData?.totalIssuePO || 0 },
+                  { name: 'Follow Up', value: dashboardData?.totalFollowUp || 0 },
+                  { name: 'Gate Entry', value: dashboardData?.totalGateEntry || 0 },
+                  { name: 'Weighment', value: dashboardData?.totalWeighment || 0 },
+                  { name: 'QC', value: dashboardData?.totalQC || 0 },
+                  { name: 'Material Unloading', value: dashboardData?.totalMaterialUnloading || 0 },
+                  { name: 'Submit Bill', value: dashboardData?.totalSubmitBill || 0 },
+                  { name: 'Bill Entry ERP', value: dashboardData?.totalBillEntryERP || 0 }
                 ]}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
@@ -550,24 +663,17 @@ export function Dashboard() {
                   fill="hsl(217, 91%, 35%)"
                   animationDuration={1000}
                 >
-                  {(viewType === "total" ? [
+                  {[
                     { name: 'PO', color: '#3b82f6' },
                     { name: 'Issue PO', color: '#10b981' },
                     { name: 'Follow Up', color: '#8b5cf6' },
-                    { name: 'Material Receiving', color: '#f59e0b' },
+                    { name: 'Gate Entry', color: '#f59e0b' },
                     { name: 'Weighment', color: '#6366f1' },
                     { name: 'QC', color: '#f59e0b' },
                     { name: 'Material Unloading', color: '#06b6d4' },
-                    { name: 'Submit Bill', color: '#ef4444' }
-                  ] : [
-                    { name: 'Issue PO', color: '#10b981' },
-                    { name: 'Follow Up', color: '#8b5cf6' },
-                    { name: 'Material Receiving', color: '#f59e0b' },
-                    { name: 'Weighment', color: '#6366f1' },
-                    { name: 'QC', color: '#f59e0b' },
-                    { name: 'Material Unloading', color: '#06b6d4' },
-                    { name: 'Submit Bill', color: '#ef4444' }
-                  ]).map((entry, index) => (
+                    { name: 'Submit Bill', color: '#ef4444' },
+                    { name: 'Bill Entry ERP', color: '#ec4899' }
+                  ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Bar>
@@ -576,7 +682,14 @@ export function Dashboard() {
           </div>
         </Card>
       </div>
-<CancelDataTable />
+
+      <div>
+
+        <DelayAnalysis />
+
+
+        <CancelDataTable />
+      </div>
     </div>
   );
 }

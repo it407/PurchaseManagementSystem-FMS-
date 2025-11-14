@@ -53,6 +53,7 @@ interface Record {
   supplierName: string;
   materialName: string;
   quantity: string;
+  rate?: string;
   planned2: string;
   actual1: string;
   gateEntryNo?: string;
@@ -103,7 +104,7 @@ export function MaterialReceivingPage() {
         const historyRecords: Record[] = [];
 
         // Process rows (skip header rows - start from row 6)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
 
           // Column T (Planned2) is index 19, Column U (Actual1) is index 20
@@ -119,7 +120,8 @@ export function MaterialReceivingPage() {
               poNo: row[5] || `PO-${i + 1}`,
               supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
-              quantity: row[7] || "0",
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               planned2: planned2,
               actual1: actual1 || "",
               rowIndex: i + 1,
@@ -168,6 +170,23 @@ export function MaterialReceivingPage() {
   };
 
 
+  const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,7 +194,9 @@ export function MaterialReceivingPage() {
 
     setSubmitLoading(true);
     try {
-      const timestamp = new Date().toLocaleString();
+      // const timestamp = new Date().toLocaleString();
+      const timestamp = formatTimestamp();
+
       let fileLink = "";
 
       // Handle file upload if attachment exists
@@ -315,7 +336,7 @@ export function MaterialReceivingPage() {
         recordToCancel.supplierName,
         recordToCancel.materialName,
         recordToCancel.quantity,
-        "0", // rate (not available in this context)
+        recordToCancel.rate,
         "Gate Entry", // Stage
         cancelForm.remark
       ];
@@ -364,30 +385,30 @@ export function MaterialReceivingPage() {
   };
 
   // Add this state near other useState declarations
-const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-// Add this function to filter records based on search term
-const filterRecords = (records: Record[]) => {
-  if (!searchTerm.trim()) return records;
-  
-  const term = searchTerm.toLowerCase();
-  return records.filter(record =>
-    record.indentNumber?.toLowerCase().includes(term) ||
-    record.productNo?.toLowerCase().includes(term) ||
-    record.poNo?.toLowerCase().includes(term) ||
-    record.supplierName?.toLowerCase().includes(term) ||
-    record.materialName?.toLowerCase().includes(term) ||
-    record.quantity?.toLowerCase().includes(term) ||
-    record.gateEntryNo?.toLowerCase().includes(term) ||
-    record.vehicleNo?.toLowerCase().includes(term) ||
-    record.driverName?.toLowerCase().includes(term) ||
-    record.status?.toLowerCase().includes(term)
-  );
-};
+  // Add this function to filter records based on search term
+  const filterRecords = (records: Record[]) => {
+    if (!searchTerm.trim()) return records;
 
-// Update the filtered records in both tabs
-const filteredPending = filterRecords(pending);
-const filteredHistory = filterRecords(history);
+    const term = searchTerm.toLowerCase();
+    return records.filter(record =>
+      record.indentNumber?.toLowerCase().includes(term) ||
+      record.productNo?.toLowerCase().includes(term) ||
+      record.poNo?.toLowerCase().includes(term) ||
+      record.supplierName?.toLowerCase().includes(term) ||
+      record.materialName?.toLowerCase().includes(term) ||
+      record.quantity?.toLowerCase().includes(term) ||
+      record.gateEntryNo?.toLowerCase().includes(term) ||
+      record.vehicleNo?.toLowerCase().includes(term) ||
+      record.driverName?.toLowerCase().includes(term) ||
+      record.status?.toLowerCase().includes(term)
+    );
+  };
+
+  // Update the filtered records in both tabs
+  const filteredPending = filterRecords(pending);
+  const filteredHistory = filterRecords(history);
 
   return (
     <div className="space-y-6 p-4 md:p-0">
@@ -417,30 +438,30 @@ const filteredHistory = filterRecords(history);
       </div>
 
       <div className="flex justify-between items-center gap-4">
-  <div className="relative flex-1 max-w-md">
-    <Input
-      type="text"
-      placeholder={`Search in ${tab}...`}
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      className="pl-10"
-    />
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </div>
-  </div>
-  {searchTerm && (
-    <Button
-      variant="outline"
-      onClick={() => setSearchTerm("")}
-      className="text-sm"
-    >
-      Clear
-    </Button>
-  )}
-</div>
+        <div className="relative flex-1 max-w-md">
+          <Input
+            type="text"
+            placeholder={`Search in ${tab}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+        {searchTerm && (
+          <Button
+            variant="outline"
+            onClick={() => setSearchTerm("")}
+            className="text-sm"
+          >
+            Clear
+          </Button>
+        )}
+      </div>
 
       {/* Loading State */}
       {loading && (
@@ -454,16 +475,16 @@ const filteredHistory = filterRecords(history);
       {!loading && tab === "pending" && (
         <Card className="overflow-hidden">
           {pending.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No pending deliveries</p>
-        <p className="text-sm mt-1">All followed-up POs have been received.</p>
-      </div>
-    ) : filteredPending.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No matching records found</p>
-        <p className="text-sm mt-1">Try adjusting your search terms.</p>
-      </div>
-    ) : (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No pending deliveries</p>
+              <p className="text-sm mt-1">All followed-up POs have been received.</p>
+            </div>
+          ) : filteredPending.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No matching records found</p>
+              <p className="text-sm mt-1">Try adjusting your search terms.</p>
+            </div>
+          ) : (
             <>
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
@@ -588,16 +609,16 @@ const filteredHistory = filterRecords(history);
       {!loading && tab === "history" && (
         <Card className="overflow-hidden">
           {history.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No received materials</p>
-        <p className="text-sm mt-1">Received items will appear here.</p>
-      </div>
-    ) : filteredHistory.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No matching records found</p>
-        <p className="text-sm mt-1">Try adjusting your search terms.</p>
-      </div>
-    ) : (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No received materials</p>
+              <p className="text-sm mt-1">Received items will appear here.</p>
+            </div>
+          ) : filteredHistory.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No matching records found</p>
+              <p className="text-sm mt-1">Try adjusting your search terms.</p>
+            </div>
+          ) : (
             <>
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
@@ -629,7 +650,7 @@ const filteredHistory = filterRecords(history);
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {filteredHistory.map((record) => ( 
+                    {filteredHistory.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.gateEntryNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
@@ -818,6 +839,8 @@ const filteredHistory = filterRecords(history);
                 <span className="font-medium">{recordToCancel.materialName}</span>
                 <span className="text-gray-500">Quantity:</span>
                 <span className="font-medium">{recordToCancel.quantity}</span>
+                <span className="text-gray-500">Rate:</span>
+                <span className="font-medium">{recordToCancel.rate}</span>
               </div>
             </div>
           )}

@@ -32,8 +32,8 @@ export function Header({ user, onLogout, onMenuClick }: HeaderProps) {
             />
           </svg>
         </button>
-        <h1 className="text-base mb-3font-medium text-gray-900 sm:text-lg">
-          Procurement
+        <h1 className="text-base mb-3font-medium text-blue-700 font-bold  sm:text-lg">
+          Purchase Management System
         </h1>
       </div>
 

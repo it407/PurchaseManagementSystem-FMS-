@@ -109,43 +109,43 @@ export function CancelDataTable() {
 
     // Filters apply karo
     useEffect(() => {
-    let filtered = [...cancelData];
+        let filtered = [...cancelData];
 
-    // Stage filter
-    if (stageFilter !== "all") {
-        filtered = filtered.filter(item => item.stage === stageFilter);
-    }
+        // Stage filter
+        if (stageFilter !== "all") {
+            filtered = filtered.filter(item => item.stage === stageFilter);
+        }
 
-    // Date filter
-    if (dateFilter) {
-        filtered = filtered.filter(item => {
-            if (!item.timestamp) return false;
-            
-            const itemDate = new Date(item.timestamp);
-            const filterDate = new Date(dateFilter);
-            
-            return itemDate.toDateString() === filterDate.toDateString();
-        });
-    }
+        // Date filter
+        if (dateFilter) {
+            filtered = filtered.filter(item => {
+                if (!item.timestamp) return false;
 
-    // Search filter
-    if (searchFilter) {
-    const searchTerm = searchFilter.toLowerCase();
-    filtered = filtered.filter(item =>
-        item.serialNo.toLowerCase().includes(searchTerm) ||
-        item.indentNo.toLowerCase().includes(searchTerm) ||
-        item.productNo.toLowerCase().includes(searchTerm) ||
-        item.supplierName.toLowerCase().includes(searchTerm) ||
-        item.materialName.toLowerCase().includes(searchTerm) ||
-        item.quantity.toLowerCase().includes(searchTerm) ||
-        item.rate.toLowerCase().includes(searchTerm) ||
-        item.stage.toLowerCase().includes(searchTerm) ||
-        item.remarks.toLowerCase().includes(searchTerm)
-    );
-}
+                const itemDate = new Date(item.timestamp);
+                const filterDate = new Date(dateFilter);
 
-    setFilteredData(filtered);
-}, [stageFilter, dateFilter, searchFilter, cancelData]);
+                return itemDate.toDateString() === filterDate.toDateString();
+            });
+        }
+
+        // Search filter
+        if (searchFilter) {
+            const searchTerm = searchFilter.toLowerCase();
+            filtered = filtered.filter(item =>
+                item.serialNo.toLowerCase().includes(searchTerm) ||
+                item.indentNo.toLowerCase().includes(searchTerm) ||
+                item.productNo.toLowerCase().includes(searchTerm) ||
+                item.supplierName.toLowerCase().includes(searchTerm) ||
+                item.materialName.toLowerCase().includes(searchTerm) ||
+                item.quantity.toLowerCase().includes(searchTerm) ||
+                item.rate.toLowerCase().includes(searchTerm) ||
+                item.stage.toLowerCase().includes(searchTerm) ||
+                item.remarks.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        setFilteredData(filtered);
+    }, [stageFilter, dateFilter, searchFilter, cancelData]);
 
     return (
         <Card className="p-4 sm:p-5 border-0 shadow-sm">
@@ -156,22 +156,62 @@ export function CancelDataTable() {
                 </h3>
 
                 {/* Filters */}
-                <div className="flex flex-wrap gap-2">
+                {/* --- MOBILE VIEW --- */}
+                <div className="w-full flex flex-col gap-3 sm:hidden">
+
+                    {/* Search */}
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchFilter}
+                        onChange={(e) => setSearchFilter(e.target.value)}
+                        className="w-full text-xs border border-gray-300 rounded-md px-3 py-2 
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+
+                    {/* Stage + Date */}
+                    <div className="w-full flex flex-row gap-3">
+                        <select
+                            value={stageFilter}
+                            onChange={(e) => setStageFilter(e.target.value)}
+                            className="w-1/2 text-xs border border-gray-300 rounded-md px-3 py-2 
+                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="all">All Stages</option>
+                            {availableStages.map((stage, index) => (
+                                <option key={index} value={stage}>{stage}</option>
+                            ))}
+                        </select>
+
+                        <input
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="w-1/2 text-xs border border-gray-300 rounded-md px-3 py-2 
+                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+
+
+
+                {/* --- DESKTOP VIEW (exact old layout) --- */}
+                <div className="hidden sm:flex flex-wrap gap-2">
 
                     <input
-        type="text"
-        placeholder="Search..."
-        value={searchFilter}
-        onChange={(e) => setSearchFilter(e.target.value)}
-        className="text-xs border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[150px]"
-    />
+                        type="text"
+                        placeholder="Search..."
+                        value={searchFilter}
+                        onChange={(e) => setSearchFilter(e.target.value)}
+                        className="text-xs border border-gray-300 rounded-md px-3 py-1.5 
+               focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
+                    />
 
-
-                    {/* Stage Filter */}
                     <select
                         value={stageFilter}
                         onChange={(e) => setStageFilter(e.target.value)}
-                        className="text-xs border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="text-xs border border-gray-300 rounded-md px-3 py-1.5 
+               focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="all">All Stages</option>
                         {availableStages.map((stage, index) => (
@@ -179,15 +219,15 @@ export function CancelDataTable() {
                         ))}
                     </select>
 
-                    {/* Date Filter */}
                     <input
                         type="date"
                         value={dateFilter}
                         onChange={(e) => setDateFilter(e.target.value)}
-                        className="text-xs border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="text-xs border border-gray-300 rounded-md px-3 py-1.5 
+               focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-
                 </div>
+
             </div>
 
             {/* Table */}
@@ -240,14 +280,14 @@ export function CancelDataTable() {
 
             {/* Summary */}
             {/* Summary */}
-<div className="mt-3 pt-3 border-t border-gray-200">
-    <p className="text-xs text-gray-600">
-        Showing {filteredData.length} of {cancelData.length} records
-        {stageFilter !== "all" && ` • Stage: ${stageFilter}`}
-        {dateFilter && ` • Date: ${new Date(dateFilter).toLocaleDateString()}`}
-        {searchFilter && ` • Search: "${searchFilter}"`}
-    </p>
-</div>
+            <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-xs text-gray-600">
+                    Showing {filteredData.length} of {cancelData.length} records
+                    {stageFilter !== "all" && ` • Stage: ${stageFilter}`}
+                    {dateFilter && ` • Date: ${new Date(dateFilter).toLocaleDateString()}`}
+                    {searchFilter && ` • Search: "${searchFilter}"`}
+                </p>
+            </div>
         </Card>
     );
 }

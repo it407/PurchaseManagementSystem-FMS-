@@ -68,7 +68,7 @@ export function POIssuePage() {
   const [formData, setFormData] = useState({
     issueDate: "",
     supplierContact: "",
-    modeOfSend: "Mail",
+    modeOfSend: "WhatsApp",
     attachmentName: "",
   });
   const [posPending, setPosPending] = useState<any[]>([]);
@@ -89,7 +89,7 @@ export function POIssuePage() {
 
         // Process rows (skip header row)
         // Process rows (skip header row)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
           // Check if Planned1 (column H, index 7) is not null and Actual1 (column I, index 8) is null
           if (row[9] && row[9] !== "" && (!row[10] || row[10] === "")) {
@@ -154,6 +154,24 @@ export function POIssuePage() {
     setIsModalOpen(true);
   };
 
+  const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedPO) {
@@ -161,7 +179,9 @@ export function POIssuePage() {
       console.log("✅ handleSubmit called for PO:", selectedPO);
 
       try {
-        const timestamp = new Date().toLocaleString();
+        // const timestamp = new Date().toLocaleString();
+    const timestamp = formatTimestamp();
+
 
 
         // Format issue date from "yyyy-mm-dd" to "dd/mm/yyyy"
@@ -423,26 +443,26 @@ export function POIssuePage() {
 
 
   // Add this function to filter POs based on search query
-// Replace the filterPOs function with this updated version
-const filterPOs = (pos: any[]) => {
-  if (!searchQuery.trim()) return pos;
-  
-  const query = searchQuery.toLowerCase();
-  return pos.filter(po => 
-    String(po.indentNumber || '').toLowerCase().includes(query) ||
-    String(po.productNumber || '').toLowerCase().includes(query) ||
-    String(po.poNo || '').toLowerCase().includes(query) ||
-    String(po.supplierName || '').toLowerCase().includes(query) ||
-    String(po.materialName || '').toLowerCase().includes(query) ||
-    String(po.quantity || '').includes(query) ||
-    String(po.rate || '').includes(query) ||
-    (po.issueDate && String(formatDateForDisplay(po.issueDate) || '').toLowerCase().includes(query)) ||
-    String(po.supplierContact || '').toLowerCase().includes(query) ||
-    String(po.modeOfSend || '').toLowerCase().includes(query) ||
-    String(po.attachmentName || '').toLowerCase().includes(query) ||
-    String(po.status || '').toLowerCase().includes(query)
-  );
-};
+  // Replace the filterPOs function with this updated version
+  const filterPOs = (pos: any[]) => {
+    if (!searchQuery.trim()) return pos;
+
+    const query = searchQuery.toLowerCase();
+    return pos.filter(po =>
+      String(po.indentNumber || '').toLowerCase().includes(query) ||
+      String(po.productNumber || '').toLowerCase().includes(query) ||
+      String(po.poNo || '').toLowerCase().includes(query) ||
+      String(po.supplierName || '').toLowerCase().includes(query) ||
+      String(po.materialName || '').toLowerCase().includes(query) ||
+      String(po.quantity || '').includes(query) ||
+      String(po.rate || '').includes(query) ||
+      (po.issueDate && String(formatDateForDisplay(po.issueDate) || '').toLowerCase().includes(query)) ||
+      String(po.supplierContact || '').toLowerCase().includes(query) ||
+      String(po.modeOfSend || '').toLowerCase().includes(query) ||
+      String(po.attachmentName || '').toLowerCase().includes(query) ||
+      String(po.status || '').toLowerCase().includes(query)
+    );
+  };
 
 
   return (
@@ -450,7 +470,7 @@ const filterPOs = (pos: any[]) => {
       {/* Header */}
       <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Issue PO</h2>
 
-      
+
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
@@ -475,16 +495,16 @@ const filterPOs = (pos: any[]) => {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-  <div className="w-full sm:w-64">
-    <Input
-      type="text"
-      placeholder="Search all columns..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="w-full"
-    />
-  </div>
-</div>
+        <div className="w-full sm:w-64">
+          <Input
+            type="text"
+            placeholder="Search all columns..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
+      </div>
 
       {/* === PENDING TAB === */}
       {tab === "pending" && (
@@ -924,6 +944,10 @@ const filterPOs = (pos: any[]) => {
                 <span className="font-medium">{poToCancel.supplierName}</span>
                 <span className="text-gray-500">Material:</span>
                 <span className="font-medium">{poToCancel.materialName}</span>
+                <span className="text-gray-500">Quantity:</span>
+                <span className="font-medium">{poToCancel.quantity}</span>
+                <span className="text-gray-500">Rate:</span>
+                <span className="font-medium">{poToCancel.rate}</span>
               </div>
             </div>
           )}

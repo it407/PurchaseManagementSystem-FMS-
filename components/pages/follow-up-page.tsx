@@ -80,22 +80,48 @@ export function FollowUpPage() {
     setIsModalOpen(true);
   };
 
+  const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedRecord) {
       try {
         setSubmitLoading(true); // Add this line
-        const timestamp = new Date().toLocaleString();
+        // const timestamp = new Date().toLocaleString();
+        const timestamp = formatTimestamp();
+
         const currentDate = new Date().toISOString().split("T")[0];
 
         // Format date to dd/mm/yyyy
-        const formatDate = (dateString: string) => {
-          const date = new Date(dateString);
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const year = date.getFullYear();
-          return `${day}/${month}/${year}`;
-        };
+        // Format date same as timestamp (MM/DD/YYYY, HH:MM:SS AM/PM)
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true, // for AM/PM format
+  });
+};
+
 
         const formattedExpectedDate = formatDate(formData.expectedDelivery);
         const formattedCurrentDate = formatDate(currentDate);
@@ -155,7 +181,7 @@ export function FollowUpPage() {
         const historyData: any[] = [];
 
         // Process rows (skip header rows - start from row 6)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
 
           if (row[16] && row[16] !== "" && (!row[17] || row[17] === "")) {

@@ -60,6 +60,8 @@ interface ProcurementRecord {
   rowIndex: number;
   billLink?: string;
   quantityNumber?: string;
+  quantity: string;
+  rate: string;
 }
 
 export function BillsPage() {
@@ -98,7 +100,7 @@ export function BillsPage() {
         const historyRecords: ProcurementRecord[] = [];
 
         // Process rows (skip header rows - start from row 6)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
 
           // Column AS (Planned7) is index 44, Column AT (Actual7) is index 45
@@ -117,6 +119,8 @@ export function BillsPage() {
               supplierName: row[3] || "Supplier",
               amount: Number(row[10]) || 0,
               quantityNumber: quantityNumber || "", // Add this line
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               rowIndex: i + 1,
             });
           }
@@ -131,6 +135,8 @@ export function BillsPage() {
               supplierName: row[3] || "Supplier",
               amount: Number(row[10]) || 0,
               billNo: row[49] || "",
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               dateSubmitted: row[45] || "", // Column AT (Actual7)
               quantityNumber: quantityNumber || "", // Add this line
               rowIndex: i + 1,
@@ -169,6 +175,29 @@ export function BillsPage() {
     }
   };
 
+
+
+  const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRecord) return;
@@ -180,7 +209,9 @@ export function BillsPage() {
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
-      const timestamp = new Date().toLocaleString();
+      // const timestamp = new Date().toLocaleString();
+      const timestamp = formatTimestamp();
+
 
 
       // Generate bill link using folder ID
@@ -270,8 +301,8 @@ export function BillsPage() {
         recordToCancel.productNo,
         recordToCancel.supplierName,
         recordToCancel.materialName,
-        recordToCancel.quantityNumber || "0",
-        recordToCancel.amount || "0",
+        recordToCancel.quantity,
+        recordToCancel.rate,
         "Bills Submission", // Stage
         cancelForm.remark
       ];

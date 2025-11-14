@@ -15,6 +15,9 @@ interface ProcurementRecord {
   poNo: string;
   indentNumber: string;
   productNo: string;
+  supplierName: string;
+  quantity: string;
+  rate: string;
   materialName: string;
   mrnNo?: string;
   materialCondition?: string;
@@ -95,7 +98,7 @@ export function MRNPage() {
         const historyRecords: ProcurementRecord[] = [];
 
         // Process rows (skip header rows - start from row 6)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
 
           // Column AM (Planned6) is index 38, Column AN (Actual6) is index 39
@@ -110,6 +113,9 @@ export function MRNPage() {
               productNo: row[2] || "", // Column C: Product No
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
+              supplierName: row[3] || "Supplier",  
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               rowIndex: i + 1,
             });
           }
@@ -121,6 +127,9 @@ export function MRNPage() {
               productNo: row[2] || "", // Column C: Product No
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
+              supplierName: row[3] || "Supplier",  
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               mrnNo: row[40] || `MRN-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AO
               materialCondition: row[44] || "OK", // Column AP
               approvedBy: row[45] || "Manager", // Column AQ
@@ -150,6 +159,25 @@ export function MRNPage() {
     setIsModalOpen(true);
   };
 
+
+  const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRecord) return;
@@ -161,7 +189,9 @@ export function MRNPage() {
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
-      const timestamp = new Date().toLocaleString();
+      // const timestamp = new Date().toLocaleString();
+      const timestamp = formatTimestamp();
+
 
 
       // Prepare data for submission
@@ -247,10 +277,10 @@ export function MRNPage() {
         serialNumber,
         recordToCancel.indentNumber,
         recordToCancel.productNo,
-        "N/A", // supplierName (not available in this context)
+        recordToCancel.supplierName,
         recordToCancel.materialName,
-        "0", // quantity (not available in this context)
-        "0", // rate (not available in this context)
+        recordToCancel.quantity,
+        recordToCancel.rate,
         "MRN Generation", // Stage
         cancelForm.remark
       ];

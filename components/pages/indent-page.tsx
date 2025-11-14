@@ -387,6 +387,24 @@ const filteredIndents = displayedIndents.filter((indent) => {
   // };
 
 
+  const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+
   const handleCreate = async (e: React.FormEvent) => {
   e.preventDefault();
 
@@ -411,7 +429,11 @@ const filteredIndents = displayedIndents.filter((indent) => {
       return `${day}/${month}/${year}`;
     };
 
-    const timestamp = new Date().toLocaleString();
+
+    // const timestamp = new Date().toLocaleString();
+    const timestamp = formatTimestamp();
+    
+
     const formattedDeliveryDate = formatDate(form.deliveryDate);
 
     // Submit each material as a separate row with product number
@@ -482,7 +504,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
       console.log("Fetched data from API:", result);
 
       if (result.success && result.data) {
-        const sheetData = result.data.slice(6); // Remove header rows
+        const sheetData = result.data.slice(7); // Remove header rows
 
         const formattedIndents = sheetData.map((row: any[], index: number) => {
           const quantityWithUnit = row[6] || ''; // Column G - Quantity with unit

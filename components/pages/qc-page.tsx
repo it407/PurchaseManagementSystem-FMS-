@@ -51,6 +51,9 @@ interface Record {
   indentNumber: string;
   productNo: string;
   materialName: string;
+  supplierName: string;
+  quantity: string;
+  rate?: string;
   status: string;
   qcReportNo?: string;
   sampleResult?: string;
@@ -93,7 +96,7 @@ const [recordToCancel, setRecordToCancel] = useState<Record | null>(null);
         const historyRecords: Record[] = [];
 
         // Process rows (skip header rows - start from row 6)
-        for (let i = 6; i < result.data.length; i++) {
+        for (let i = 7; i < result.data.length; i++) {
           const row = result.data[i];
 
           // Column AF (Planned5) is index 31, Column AG (Actual5) is index 32
@@ -106,8 +109,11 @@ const [recordToCancel, setRecordToCancel] = useState<Record | null>(null);
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
+              supplierName: row[3] || "Supplier",
               poNo: row[4] || `PO-${i + 1}`,
               materialName: row[3] || "Material",
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               status: "Verified",
               rowIndex: i + 1,
             });
@@ -118,8 +124,11 @@ const [recordToCancel, setRecordToCancel] = useState<Record | null>(null);
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
+              supplierName: row[3] || "Supplier",
               poNo: row[4] || `PO-${i + 1}`,
               materialName: row[3] || "Material",
+              quantity: row[6] || "0",
+              rate: row[7] || 0,
               qcReportNo: row[37] || `QC-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AH
               sampleResult: row[38] || "Pass", // Column AI
               testDate: row[37] || "", // Column AJ
@@ -156,6 +165,25 @@ const [recordToCancel, setRecordToCancel] = useState<Record | null>(null);
     setIsModalOpen(true);
   };
 
+
+  const formatTimestamp = () => {
+  const d = new Date();
+  
+  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
+  let day = String(d.getDate()).padStart(2, '0');        // DD
+  let year = d.getFullYear();                            // YYYY
+  
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // Convert 0 → 12
+  
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRecord) return;
@@ -167,7 +195,9 @@ const [recordToCancel, setRecordToCancel] = useState<Record | null>(null);
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
-      const timestamp = new Date().toLocaleString();
+      // const timestamp = new Date().toLocaleString();
+      const timestamp = formatTimestamp();
+
 
 
       // Prepare data for submission
@@ -255,10 +285,10 @@ const handleCancel = async (e: React.FormEvent) => {
       serialNumber,
       recordToCancel.indentNumber,
       recordToCancel.productNo,
-      "N/A", // supplierName (not available in this context)
+      recordToCancel.supplierName,
       recordToCancel.materialName,
-      "0", // quantity (not available in this context)
-      "0", // rate (not available in this context)
+      recordToCancel.quantity,
+      recordToCancel.rate,
       "Quality Check", // Stage
       cancelForm.remark
     ];
@@ -731,6 +761,10 @@ const filteredHistory = filterRecords(history);
           <span className="font-medium">{recordToCancel.productNo}</span>
           <span className="text-gray-500">Material:</span>
           <span className="font-medium">{recordToCancel.materialName}</span>
+          <span className="text-gray-500">Quantity:</span>
+          <span className="font-medium">{recordToCancel.quantity}</span>
+          <span className="text-gray-500">Rate:</span>
+          <span className="font-medium">{recordToCancel.rate}</span>
           <span className="text-gray-500">Status:</span>
           <span className="font-medium">{recordToCancel.status}</span>
         </div>
