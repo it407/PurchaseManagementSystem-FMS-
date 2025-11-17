@@ -209,12 +209,12 @@ export function BillEntryPage() {
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
               poNo: row[5] || `PO-${i + 1}`,
-              billNo: row[47] || 0, // Column AU
+              billNo: row[49] || 0, // Column AU
               supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
               quantity: row[6] || "0",
               rate: row[7] || 0,
-              amount: parseFloat(row[48]) || 0, // Column K
+              amount: parseFloat(row[50]) || 0, // Column K
               rowIndex: i + 1,
             });
           }
@@ -230,7 +230,7 @@ export function BillEntryPage() {
               materialName: row[4] || "Material",
               quantity: row[6] || "0",
               rate: row[7] || 0,
-              amount: parseFloat(row[48]) || 0, // Column K
+              amount: parseFloat(row[50]) || 0, // Column K
               enteredBy: row[54] || "", // Column BD - Entered By
               entryDate: row[56] || "", // Column BC (Actual9)
               rowIndex: i + 1,
@@ -595,7 +595,7 @@ const filteredHistory = filterRecords(history);
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-green-700">
                           ₹{record.amount.toLocaleString("en-IN")}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.entryDate}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.enteredBy}</td>
 
                       </tr>
                     ))}
@@ -660,7 +660,7 @@ const filteredHistory = filterRecords(history);
         <form onSubmit={handleSubmit} className="space-y-4">
 
           <LabeledInput
-            label="Purchase Order Number"
+            label="Bill Voucher No"
             value={formData.purchaseOrderNo}
             onChange={(e) => setFormData({ ...formData, purchaseOrderNo: e.target.value })}
             placeholder="Enter Purchase Order Number"

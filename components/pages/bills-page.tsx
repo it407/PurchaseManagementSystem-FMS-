@@ -117,7 +117,7 @@ export function BillsPage() {
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
               supplierName: row[3] || "Supplier",
-              amount: Number(row[10]) || 0,
+              amount: Number(row[50]) || 0,
               quantityNumber: quantityNumber || "", // Add this line
               quantity: row[6] || "0",
               rate: row[7] || 0,
@@ -133,7 +133,7 @@ export function BillsPage() {
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
               supplierName: row[3] || "Supplier",
-              amount: Number(row[10]) || 0,
+              amount: Number(row[50]) || 0,
               billNo: row[49] || "",
               quantity: row[6] || "0",
               rate: row[7] || 0,
@@ -626,8 +626,8 @@ const filteredHistory = filterRecords(history);
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <p className="font-semibold text-gray-900">{record.billNo}</p>
-                        <p className="text-sm text-gray-600">{record.poNo}</p>
                       </div>
+                      
                       <span className="text-xs font-medium text-green-800 bg-green-100 px-2.5 py-0.5 rounded-full">
                         Submitted
                       </span>
@@ -642,6 +642,11 @@ const filteredHistory = filterRecords(history);
                         <p className="text-gray-500">Amount</p>
                         <p className="font-medium text-green-700">₹{record.amount.toLocaleString("en-IN")}</p>
                       </div>
+                      <div>
+                        <p className="text-gray-500">Po Number</p>
+
+                        <p className="text-sm text-gray-600">{record.poNo}</p>
+                        </div>
 
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm mb-3">
@@ -675,14 +680,6 @@ const filteredHistory = filterRecords(history);
         <form onSubmit={handleSubmit} className="space-y-4">
           <LabeledInput label="PO No." value={selectedRecord?.poNo || ""} onChange={() => { }} disabled />
           <LabeledInput label="Supplier Name" value={selectedRecord?.supplierName || ""} onChange={() => { }} disabled />
-
-          <LabeledInput
-            label="Quantity Number"
-            value={selectedRecord?.quantityNumber || ""}
-            onChange={() => { }}
-            disabled
-          />
-
 
           <LabeledInput
             label="Bill No."

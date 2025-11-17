@@ -580,7 +580,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-          Make Indent
+          Create PO
         </h2>
         <Button
           onClick={() => {
@@ -590,7 +590,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
           className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          <span className="hidden sm:inline">Make Indent</span>
+          <span className="hidden sm:inline">Create PO</span>
           <span className="sm:hidden">New</span>
         </Button>
       </div>
@@ -760,7 +760,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
       <Modal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        title="Create New Indent"
+        title="Create PO"
         className="max-w-lg w-full mx-4 sm:mx-auto"
       >
         <form onSubmit={handleCreate} className="space-y-4" noValidate>
@@ -972,7 +972,16 @@ const filteredIndents = displayedIndents.filter((indent) => {
               <div>
                 <span className="text-gray-500">Total</span>
                 <p className="font-semibold">
-                  ₹{selected.quantity * selected.rate}
+                  ₹{(() => {
+              // Extract only numbers from quantity (remove units)
+              const quantityStr = String(selected.quantity || '');
+              const quantityMatch = quantityStr.match(/(\d+\.?\d*)/);
+              const quantityValue = quantityMatch ? parseFloat(quantityMatch[1]) : 0;
+              
+              const rateValue = parseFloat(selected.rate) || 0;
+              
+              return (quantityValue * rateValue).toFixed(2);
+            })()}
                 </p>
               </div>
             </div>

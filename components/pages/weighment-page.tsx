@@ -117,9 +117,9 @@ export function WeighmentPage() {
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
-              poNo: row[4] || `PO-${i + 1}`,
+              poNo: row[5] || `PO-${i + 1}`,
               supplierName: row[3] || "Supplier",
-              materialName: row[3] || "Material",
+              materialName: row[4] || "Material",
               quantity: row[6] || "0",
               rate: row[7] || 0,
               status: "Received",
@@ -138,11 +138,11 @@ export function WeighmentPage() {
               quantity: row[6] || "0",
               rate: row[7] || 0,
               slipNo: row[26] || `WS-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AA
-              grossWeight: row[27] || "0", // Column AB
-              tareWeight: row[28] || "0", // Column AC
-              netWeight: row[29] || "0", // Column AD (calculated)
+              grossWeight: row[29] || "0", // Column AB
+              tareWeight: row[30] || "0", // Column AC
+              netWeight: row[31] || "0", // Column AD (calculated)
               verifiedBy: row[30] || "N/A", // Column AE
-              status: "Verified",
+              status: row[32] || "N/A", // Column AE
               rowIndex: i + 1,
             });
           }
@@ -635,7 +635,7 @@ const filteredHistory = filterRecords(history);
                         Net (kg)
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        Verified By
                       </th>
                     </tr>
                   </thead>

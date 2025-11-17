@@ -14,7 +14,7 @@ interface SidebarProps {
 // All available menu items
 const allMenuItems = [
   { id: "dashboard", label: "Dashboard", icon: "ChartBar" },
-  { id: "indent", label: "Make Indent", icon: "FileText" },
+  { id: "indent", label: "Create PO", icon: "FileText" },
   { id: "po-issue", label: "Issue PO", icon: "Send" },
   { id: "follow-up", label: "Follow-up", icon: "RefreshCw" },
   { id: "material-receiving", label: "Gate Entry", icon: "Truck" },

@@ -59,6 +59,7 @@ interface Record {
   gateEntryNo?: string;
   vehicleNo?: string;
   driverName?: string;
+  attachmentFile?: string;
   status?: string;
   rowIndex: number;
 }
@@ -142,6 +143,7 @@ export function MaterialReceivingPage() {
               gateEntryNo: row[43] || `GE-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column V
               vehicleNo: row[23] || "N/A", // Column W
               driverName: row[24] || "N/A", // Column X
+  attachmentFile: row[25] || "", // Column Z - Attachment File
               status: "Received",
               rowIndex: i + 1,
             });
@@ -626,9 +628,7 @@ export function MaterialReceivingPage() {
                   <thead className="bg-gray-50">
                     <tr>
 
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Approved By
-                      </th>
+                    
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
                       </th>
@@ -642,7 +642,13 @@ export function MaterialReceivingPage() {
                         Material
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Vehicle
+                        Vehicle No.
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Driver Name
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Attachment File
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
@@ -652,12 +658,27 @@ export function MaterialReceivingPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {filteredHistory.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.gateEntryNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.poNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.materialName}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.vehicleNo}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.driverName}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                    {record.attachmentFile ? (
+                      <a 
+                        href={record.attachmentFile} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline text-xs"
+                      >
+                        View Attachment
+                      </a>
+                    ) : (
+                      "No file"
+                    )}
+                  </td>
+                        
                         <td className="px-4 py-3">
                           <span className="inline-flex rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                             {record.status}
@@ -670,45 +691,64 @@ export function MaterialReceivingPage() {
               </div>
 
               {/* Mobile Cards */}
-              <div className="md:hidden space-y-4 p-4">
-                {filteredHistory.map((record) => (
-                  <div
-                    key={record.id}
-                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-semibold text-gray-900">{record.gateEntryNo}</p>
-                        <p className="text-sm text-gray-600">{record.poNo}</p>
-                      </div>
-                      <span className="text-xs font-medium text-green-800 bg-green-100 px-2.5 py-0.5 rounded-full">
-                        Received
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                      <div>
-                        <p className="text-gray-500">Indent No.</p>
-                        <p className="font-medium">{record.indentNumber}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Product No.</p>
-                        <p className="font-medium">{record.productNo}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Material</p>
-                        <p className="font-medium">{record.materialName}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Vehicle</p>
-                        <p className="font-medium text-xs">{record.vehicleNo}</p>
-                      </div>
-                    </div>
-
-
-                  </div>
-                ))}
+               <div className="md:hidden space-y-4 p-4">
+          {filteredHistory.map((record) => (
+            <div
+              key={record.id}
+              className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="font-semibold text-gray-900">{record.gateEntryNo}</p>
+                  <p className="text-sm text-gray-600">{record.poNo}</p>
+                </div>
+                <span className="text-xs font-medium text-green-800 bg-green-100 px-2.5 py-0.5 rounded-full">
+                  Received
+                </span>
               </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                <div>
+                  <p className="text-gray-500">Indent No.</p>
+                  <p className="font-medium">{record.indentNumber}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Product No.</p>
+                  <p className="font-medium">{record.productNo}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Material</p>
+                  <p className="font-medium">{record.materialName}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Vehicle</p>
+                  <p className="font-medium text-xs">{record.vehicleNo}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Driver</p>
+                  <p className="font-medium text-xs">{record.driverName || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Attachment</p>
+                  <p className="font-medium text-xs">
+                    {record.attachmentFile ? (
+                      <a 
+                        href={record.attachmentFile} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        View
+                      </a>
+                    ) : (
+                      "No file"
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
             </>
           )}
         </Card>

@@ -212,7 +212,20 @@ const DelayAnalysis = () => {
   };
 
 
-
+// Add this helper function after imports
+const parseDate = (dateStr: string): Date | null => {
+  if (!dateStr || dateStr.trim() === '') return null;
+  
+  // Handle "DD/MM/YYYY HH:MM:SS" format
+  if (dateStr.includes('/')) {
+    const [datePart, timePart] = dateStr.split(' ');
+    const [day, month, year] = datePart.split('/');
+    return new Date(`${year}-${month}-${day}T${timePart || '00:00:00'}.000Z`);
+  }
+  
+  // Fallback to standard parsing
+  return new Date(dateStr);
+};
 
   // Generate mock data for testing
   const generateMockData = () => {
@@ -426,76 +439,82 @@ const DelayAnalysis = () => {
   };
 
   // Filter data based on selected filter
-  useEffect(() => {
-    if (data.length === 0) return;
+ // Filter data based on selected filter
+useEffect(() => {
+  if (data.length === 0) return;
 
-    console.log("\n=== Applying Filter ===");
-    console.log("Filter Type:", filterType);
+  console.log("\n=== Applying Filter ===");
+  console.log("Filter Type:", filterType);
 
-    let filtered = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  let filtered = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    if (filterType === 'today') {
-      filtered = data.filter(row => {
-        const planned = row.planned1; // Using planned1 for date filtering
-        if (!planned) return false;
+  if (filterType === 'today') {
+    filtered = data.filter(row => {
+      const planned = row.planned1;
+      if (!planned) return false;
 
-        const rowDate = new Date(planned);
-        rowDate.setHours(0, 0, 0, 0);
+      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
+      if (!rowDate) return false;
+      rowDate.setHours(0, 0, 0, 0);
 
-        return rowDate.getTime() === today.getTime();
-      });
-    } else if (filterType === 'last7days') {
-      const sevenDaysAgo = new Date(today);
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return rowDate.getTime() === today.getTime();
+    });
+  } else if (filterType === 'last7days') {
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      filtered = data.filter(row => {
-        const planned = row.planned1;
-        if (!planned) return false;
+    filtered = data.filter(row => {
+      const planned = row.planned1;
+      if (!planned) return false;
 
-        const rowDate = new Date(planned);
-        rowDate.setHours(0, 0, 0, 0);
+      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
+      if (!rowDate) return false;
+      rowDate.setHours(0, 0, 0, 0);
 
-        return rowDate >= sevenDaysAgo && rowDate <= today;
-      });
-    } else if (filterType === 'month' && selectedMonth) {
-      filtered = data.filter(row => {
-        const planned = row.planned1;
-        if (!planned) return false;
+      return rowDate >= sevenDaysAgo && rowDate <= today;
+    });
+  } else if (filterType === 'month' && selectedMonth) {
+    filtered = data.filter(row => {
+      const planned = row.planned1;
+      if (!planned) return false;
 
-        const rowDate = new Date(planned);
-        const monthYear = `${rowDate.getFullYear()}-${String(rowDate.getMonth() + 1).padStart(2, '0')}`;
+      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
+      if (!rowDate) return false;
+      const monthYear = `${rowDate.getFullYear()}-${String(rowDate.getMonth() + 1).padStart(2, '0')}`;
 
-        return monthYear === selectedMonth;
-      });
-    } else if (filterType === 'sixmonth' && selectedSixMonth) {
-      const [startMonth, endMonth] = selectedSixMonth.split('_');
+      return monthYear === selectedMonth;
+    });
+  } else if (filterType === 'sixmonth' && selectedSixMonth) {
+    const [startMonth, endMonth] = selectedSixMonth.split('_');
 
-      filtered = data.filter(row => {
-        const planned = row.planned1;
-        if (!planned) return false;
+    filtered = data.filter(row => {
+      const planned = row.planned1;
+      if (!planned) return false;
 
-        const rowDate = new Date(planned);
-        const monthYear = `${rowDate.getFullYear()}-${String(rowDate.getMonth() + 1).padStart(2, '0')}`;
+      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
+      if (!rowDate) return false;
+      const monthYear = `${rowDate.getFullYear()}-${String(rowDate.getMonth() + 1).padStart(2, '0')}`;
 
-        return monthYear >= startMonth && monthYear <= endMonth;
-      });
-    } else if (filterType === 'year' && selectedYear) {
-      filtered = data.filter(row => {
-        const planned = row.planned1;
-        if (!planned) return false;
+      return monthYear >= startMonth && monthYear <= endMonth;
+    });
+  } else if (filterType === 'year' && selectedYear) {
+    filtered = data.filter(row => {
+      const planned = row.planned1;
+      if (!planned) return false;
 
-        const rowDate = new Date(planned);
-        return rowDate.getFullYear().toString() === selectedYear;
-      });
-    } else {
-      filtered = data;
-    }
+      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
+      if (!rowDate) return false;
+      return rowDate.getFullYear().toString() === selectedYear;
+    });
+  } else {
+    filtered = data;
+  }
 
-    console.log("Filtered data length:", filtered.length);
-    setFilteredData(calculateDelays(filtered));
-  }, [data, filterType, selectedMonth, selectedSixMonth, selectedYear]);
+  console.log("Filtered data length:", filtered.length);
+  setFilteredData(calculateDelays(filtered));
+}, [data, filterType, selectedMonth, selectedSixMonth, selectedYear]);
 
   // Generate month options (last 12 months)
   const getMonthOptions = (): { value: string; label: string }[] => {
@@ -534,209 +553,6 @@ const DelayAnalysis = () => {
 
     return years;
   };
-
-  // return (
-  //   <div className=" bg-gray-50 p-6">
-  //     <div className="max-w-7xl">
-  //       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-  //         <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-  //           <BarChart3 className="w-6 h-6" />
-  //           Delay Analysis Dashboard
-  //         </h1>
-
-  //         {/* Filter Buttons */}
-  //         <div className="flex flex-wrap gap-3 mb-6">
-  //           <button
-  //             onClick={() => {
-  //               setFilterType('today');
-  //               setShowMonthDropdown(false);
-  //               setShowSixMonthDropdown(false);
-  //               setShowYearDropdown(false);
-  //             }}
-  //             className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterType === 'today'
-  //               ? 'bg-blue-600 text-white'
-  //               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-  //               }`}
-  //           >
-  //             Today
-  //           </button>
-
-  //           <button
-  //             onClick={() => {
-  //               setFilterType('last7days');
-  //               setShowMonthDropdown(false);
-  //               setShowSixMonthDropdown(false);
-  //               setShowYearDropdown(false);
-  //             }}
-  //             className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterType === 'last7days'
-  //               ? 'bg-blue-600 text-white'
-  //               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-  //               }`}
-  //           >
-  //             Last 7 Days
-  //           </button>
-
-  //           <div className="relative">
-  //             <button
-  //               onClick={() => {
-  //                 setShowMonthDropdown(!showMonthDropdown);
-  //                 setShowSixMonthDropdown(false);
-  //                 setShowYearDropdown(false);
-  //               }}
-  //               className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filterType === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-  //                 }`}
-  //             >
-  //               Month {filterYear && `(${filterYear})`}
-  //               <ChevronDown size={16} />
-  //             </button>
-
-  //             {showMonthDropdown && (
-  //               <div className="absolute top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-  //                 {getMonthOptions().map(option => (
-  //                   <button
-  //                     key={option.value}
-  //                     onClick={() => {
-  //                       setFilterType('month');
-  //                       setSelectedMonth(option.value);
-  //                       setShowMonthDropdown(false);
-  //                     }}
-  //                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 whitespace-nowrap"
-  //                   >
-  //                     {option.label}
-  //                   </button>
-  //                 ))}
-  //               </div>
-  //             )}
-  //           </div>
-
-  //           <div className="relative">
-  //             <button
-  //               onClick={() => {
-  //                 setShowSixMonthDropdown(!showSixMonthDropdown);
-  //                 setShowMonthDropdown(false);
-  //                 setShowYearDropdown(false);
-  //               }}
-  //               className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filterType === 'sixmonth' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-  //                 }`}
-  //             >
-  //               Six Months {filterYear && `(${filterYear})`}
-  //               <ChevronDown size={16} />
-  //             </button>
-
-  //             {showSixMonthDropdown && (
-  //               <div className="absolute top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-  //                 {getSixMonthOptions().map(option => (
-  //                   <button
-  //                     key={option.value}
-  //                     onClick={() => {
-  //                       setFilterType('sixmonth');
-  //                       setSelectedSixMonth(option.value);
-  //                       setShowSixMonthDropdown(false);
-  //                     }}
-  //                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 whitespace-nowrap"
-  //                   >
-  //                     {option.label}
-  //                   </button>
-  //                 ))}
-  //               </div>
-  //             )}
-  //           </div>
-
-  //           <div className="relative">
-  //             <button
-  //               onClick={() => {
-  //                 setShowYearDropdown(!showYearDropdown);
-  //                 setShowMonthDropdown(false);
-  //                 setShowSixMonthDropdown(false);
-  //               }}
-  //               className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filterType === 'year' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-  //                 }`}
-  //             >
-  //               Year {filterYear && `(${filterYear})`}
-  //               <ChevronDown size={16} />
-  //             </button>
-
-  //             {showYearDropdown && (
-  //               <div className="absolute top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-  //                 {getYearOptions().map(option => (
-  //                   <button
-  //                     key={option.value}
-  //                     onClick={() => {
-  //                       setFilterType('year');
-  //                       setSelectedYear(option.value);
-  //                       setFilterYear(option.value);  // Ye line add karo
-  //                       setShowYearDropdown(false);
-  //                     }}
-  //                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 whitespace-nowrap"
-  //                   >
-  //                     {option.label}
-  //                   </button>
-  //                 ))}
-  //               </div>
-  //             )}
-  //           </div>
-  //         </div>
-
-  //         {/* Current Filter Display */}
-  //         <div className="mb-4 text-sm text-gray-600">
-  //           Current Filter: <span className="font-semibold">
-  //             {filterType === 'today' && 'Today'}
-  //             {filterType === 'last7days' && 'Last 7 Days'}
-  //             {filterType === 'month' && selectedMonth && getMonthOptions().find(m => m.value === selectedMonth)?.label}
-  //             {filterType === 'sixmonth' && selectedSixMonth && getSixMonthOptions().find(s => s.value === selectedSixMonth)?.label}
-  //             {filterType === 'year' && selectedYear}
-  //           </span>
-  //         </div>
-
-  //         {/* Chart */}
-  //         {loading ? (
-  //           <div className="flex items-center justify-center h-64">
-  //             <div className="text-gray-500">Loading data...</div>
-  //           </div>
-  //         ) : (
-  //           <div className="h-96">
-  //             <ResponsiveContainer width="100%" height="100%">
-  //               <BarChart
-  //                 data={filteredData}
-  //                 margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-  //               >
-  //                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-  //                 <XAxis
-  //                   dataKey="name"
-  //                   angle={-45}
-  //                   textAnchor="end"
-  //                   height={100}
-  //                   interval={0}
-  //                   fontSize={11}
-  //                   tick={{ fontSize: 11 }}
-  //                 />
-  //                 <YAxis fontSize={11} />
-  //                 <Tooltip
-  //                   contentStyle={{
-  //                     backgroundColor: 'white',
-  //                     border: '1px solid #e5e7eb',
-  //                     borderRadius: '6px',
-  //                     fontSize: '12px'
-  //                   }}
-  //                   formatter={(value) => [value, 'Delay Count']}
-  //                 />
-  //                 <Bar
-  //                   dataKey="value"
-  //                   radius={[4, 4, 0, 0]}
-  //                   animationDuration={1000}
-  //                 >
-  //                   {filteredData.map((entry, index) => (
-  //                     <Cell key={`cell-${index}`} fill={entry.color} />
-  //                   ))}
-  //                 </Bar>
-  //               </BarChart>
-  //             </ResponsiveContainer>
-  //           </div>
-  //         )}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 
 
 

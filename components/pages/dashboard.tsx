@@ -125,38 +125,46 @@ export function Dashboard() {
     // NEW: Helper function to check if delay value is positive (contains "+")
     // SIMPLE: Helper function to check if delay value contains "+" sign
     // Helper function to check if delay value is positive
-    const isPositiveDelay = (value: any) => {
-      if (!hasValue(value)) {
-        console.log("Delay value is empty/null");
-        return false;
-      }
+// Helper function to check if delay value is positive
+const isPositiveDelay = (value: any) => {
+  if (!hasValue(value)) {
+    console.log("Delay value is empty/null");
+    return false;
+  }
 
-      const strValue = value.toString().trim();
-      console.log("Checking delay value:", strValue);
+  const strValue = value.toString().trim();
+  console.log("Checking delay value:", strValue);
 
-      // Check if it's ISO date format (from Google Sheets)
-      if (strValue.includes('T') && strValue.includes('Z')) {
-        try {
-          const date = new Date(strValue);
-          // Google Sheets stores time as days since 1899-12-30
-          const baseDate = new Date('1899-12-30T00:00:00.000Z');
-          const diffMs = date.getTime() - baseDate.getTime();
-          const diffSeconds = Math.floor(diffMs / 1000);
+  // Handle "HH:MM:SS" format (like "1:00:00" or "-46:59:27")
+  if (strValue.includes(':')) {
+    // Check if negative (starts with -)
+    const isNegative = strValue.startsWith('-');
+    
+    // Parse time parts
+    const cleanStr = strValue.replace('-', '');
+    const parts = cleanStr.split(':');
+    
+    if (parts.length === 3) {
+      const hours = parseInt(parts[0]) || 0;
+      const minutes = parseInt(parts[1]) || 0;
+      const seconds = parseInt(parts[2]) || 0;
+      
+      const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+      const finalSeconds = isNegative ? -totalSeconds : totalSeconds;
+      
+      console.log(`Time: ${strValue} -> Seconds: ${finalSeconds} (Positive: ${finalSeconds > 0})`);
+      
+      // Only count if positive (greater than 0)
+      return finalSeconds > 0;
+    }
+  }
 
-          console.log(`ISO Date Delay: ${strValue} -> Seconds: ${diffSeconds} (Positive: ${diffSeconds > 0})`);
-          return diffSeconds > 0;
-        } catch (e) {
-          console.log("Failed to parse ISO date:", e);
-          return false;
-        }
-      }
-
-      // Check if value contains "+" sign (for time format like "+4:02:56")
-      const hasPlus = strValue.includes('+');
-      console.log("Has + sign:", hasPlus);
-
-      return hasPlus;
-    };
+  // Check if value contains "+" sign (backup check)
+  const hasPlus = strValue.includes('+');
+  console.log("Has + sign:", hasPlus);
+  
+  return hasPlus;
+};
 
     // Row 6 se start karo (headers skip karo)
     for (let i = 7; i < data.length; i++) {

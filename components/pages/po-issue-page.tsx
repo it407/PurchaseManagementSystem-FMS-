@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -58,10 +57,8 @@ export function POIssuePage() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-
-
   const [cancelForm, setCancelForm] = useState({
-    remark: ""
+    remark: "",
   });
   const [poToCancel, setPoToCancel] = useState<any>(null);
 
@@ -148,29 +145,28 @@ export function POIssuePage() {
     setFormData({
       issueDate: new Date().toISOString().split("T")[0],
       supplierContact: "",
-      modeOfSend: "Mail",
+      modeOfSend: "WhatsApp",
       attachmentName: "",
     });
     setIsModalOpen(true);
   };
 
   const formatTimestamp = () => {
-  const d = new Date();
-  
-  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
-  let day = String(d.getDate()).padStart(2, '0');        // DD
-  let year = d.getFullYear();                            // YYYY
-  
-  let hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
-  
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12; // Convert 0 → 12
-  
-  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
-};
+    const d = new Date();
 
+    let month = String(d.getMonth() + 1).padStart(2, "0"); // MM
+    let day = String(d.getDate()).padStart(2, "0"); // DD
+    let year = d.getFullYear(); // YYYY
+
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 0 → 12
+
+    return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,15 +176,13 @@ export function POIssuePage() {
 
       try {
         // const timestamp = new Date().toLocaleString();
-    const timestamp = formatTimestamp();
-
-
+        const timestamp = formatTimestamp();
 
         // Format issue date from "yyyy-mm-dd" to "dd/mm/yyyy"
         const formatIssueDate = (dateString: string) => {
           const date = new Date(dateString);
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, "0");
+          const month = String(date.getMonth() + 1).padStart(2, "0");
           const year = date.getFullYear();
           return `${day}/${month}/${year}`;
         };
@@ -201,14 +195,16 @@ export function POIssuePage() {
         if (formData.attachmentName) {
           console.log("📁 Uploading attachment:", formData.attachmentName);
 
-          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+          const fileInput = document.querySelector(
+            'input[type="file"]'
+          ) as HTMLInputElement;
           if (fileInput?.files?.[0]) {
             const file = fileInput.files[0];
 
             const base64Data = await new Promise<string>((resolve) => {
               const reader = new FileReader();
               reader.onload = (e) => {
-                const base64 = (e.target?.result as string).split(',')[1];
+                const base64 = (e.target?.result as string).split(",")[1];
                 resolve(base64);
               };
               reader.readAsDataURL(file);
@@ -219,7 +215,7 @@ export function POIssuePage() {
               base64Data: base64Data,
               fileName: file.name,
               mimeType: file.type,
-              folderId: "1k5Hs55027DERG_l9rjG1tpaxds768orW"
+              folderId: "1k5Hs55027DERG_l9rjG1tpaxds768orW",
             };
 
             console.log("📁 Uploading file to Google Apps Script...");
@@ -230,7 +226,7 @@ export function POIssuePage() {
               {
                 method: "POST",
                 body: new URLSearchParams({
-                  data: JSON.stringify(uploadPayload)
+                  data: JSON.stringify(uploadPayload),
                 }),
               }
             );
@@ -253,15 +249,18 @@ export function POIssuePage() {
           sheetName: "FMS",
           rowIndex: selectedPO.rowIndex,
           columnData: {
-            "K": timestamp, // Column I - Actual1 (current date in dd/mm/yyyy)
-            "L": formattedIssueDate, // Column J - Issue Date (formatted to dd/mm/yyyy)
-            "M": formData.supplierContact,
-            "N": formData.modeOfSend,
-            "O": fileLink, // Column M - File URL
-          }
+            K: timestamp, // Column I - Actual1 (current date in dd/mm/yyyy)
+            L: formattedIssueDate, // Column J - Issue Date (formatted to dd/mm/yyyy)
+            M: formData.supplierContact,
+            N: formData.modeOfSend,
+            O: fileLink, // Column M - File URL
+          },
         };
 
-        console.log("📦 Update payload:", JSON.stringify(updatePayload, null, 2));
+        console.log(
+          "📦 Update payload:",
+          JSON.stringify(updatePayload, null, 2)
+        );
 
         // Use no-cors mode to avoid CORS issues
         await fetch(
@@ -273,7 +272,7 @@ export function POIssuePage() {
               "Content-Type": "application/x-www-form-urlencoded",
             },
             body: new URLSearchParams({
-              data: JSON.stringify(updatePayload)
+              data: JSON.stringify(updatePayload),
             }),
           }
         );
@@ -281,14 +280,13 @@ export function POIssuePage() {
         console.log("✅ Request sent successfully (no-cors mode)");
 
         // Wait a bit for the update to process
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Refresh data
         await fetchPOData();
         setIsModalOpen(false);
         setSelectedPO(null);
         console.log("✅ Update complete");
-
       } catch (error) {
         console.error("💥 Error updating PO:", error);
         alert("Error updating PO. Please try again.");
@@ -302,16 +300,16 @@ export function POIssuePage() {
     if (!dateString) return "";
 
     // Check if date is already in dd/mm/yyyy format
-    if (dateString.includes('/') && dateString.split('/').length === 3) {
+    if (dateString.includes("/") && dateString.split("/").length === 3) {
       return dateString;
     }
 
     // If it's in ISO format (2025-11-11T18:30:00.000Z)
-    if (dateString.includes('T') && dateString.includes('-')) {
+    if (dateString.includes("T") && dateString.includes("-")) {
       try {
         const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
       } catch (error) {
@@ -321,8 +319,8 @@ export function POIssuePage() {
     }
 
     // If it's in yyyy-mm-dd format
-    if (dateString.includes('-') && dateString.split('-').length === 3) {
-      const [year, month, day] = dateString.split('-');
+    if (dateString.includes("-") && dateString.split("-").length === 3) {
+      const [year, month, day] = dateString.split("-");
       return `${day}/${month}/${year}`;
     }
 
@@ -333,24 +331,24 @@ export function POIssuePage() {
     if (!dateString) return "";
 
     // If date is in dd/mm/yyyy format, convert to yyyy-mm-dd for input
-    if (dateString.includes('/') && dateString.split('/').length === 3) {
-      const [day, month, year] = dateString.split('/');
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    if (dateString.includes("/") && dateString.split("/").length === 3) {
+      const [day, month, year] = dateString.split("/");
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
 
     // If it's in ISO format, extract the date part
-    if (dateString.includes('T')) {
-      return dateString.split('T')[0];
+    if (dateString.includes("T")) {
+      return dateString.split("T")[0];
     }
 
     return dateString;
   };
 
-
-
   const generateCancelSerialNumber = async () => {
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch"
+      );
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -358,20 +356,24 @@ export function POIssuePage() {
         let highestNumber = 0;
         sheetData.forEach((row: any[]) => {
           const serialNumber = row[1];
-          if (serialNumber && typeof serialNumber === 'string' && serialNumber.startsWith('SN-')) {
-            const numberPart = parseInt(serialNumber.replace('SN-', ''));
+          if (
+            serialNumber &&
+            typeof serialNumber === "string" &&
+            serialNumber.startsWith("SN-")
+          ) {
+            const numberPart = parseInt(serialNumber.replace("SN-", ""));
             if (!isNaN(numberPart) && numberPart > highestNumber) {
               highestNumber = numberPart;
             }
           }
         });
         const nextNumber = highestNumber + 1;
-        return `SN-${String(nextNumber).padStart(3, '0')}`;
+        return `SN-${String(nextNumber).padStart(3, "0")}`;
       }
     } catch (error) {
       console.error("Error generating serial number:", error);
     }
-    return 'SN-001';
+    return "SN-001";
   };
 
   // Add this cancel handler function
@@ -395,22 +397,25 @@ export function POIssuePage() {
         poToCancel.quantity,
         poToCancel.rate,
         "PO Issue", // Stage changed from "Indent Details" to "PO Issue"
-        cancelForm.remark
+        cancelForm.remark,
       ];
 
       console.log("Submitting cancel data to Google Sheets:", rowData);
 
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          action: "insert",
-          sheetName: "Cancel",
-          rowData: JSON.stringify(rowData)
-        })
-      });
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "insert",
+            sheetName: "Cancel",
+            rowData: JSON.stringify(rowData),
+          }),
+        }
+      );
 
       const result = await response.json();
 
@@ -441,54 +446,74 @@ export function POIssuePage() {
     setIsCancelOpen(true);
   };
 
-
   // Add this function to filter POs based on search query
   // Replace the filterPOs function with this updated version
   const filterPOs = (pos: any[]) => {
     if (!searchQuery.trim()) return pos;
 
     const query = searchQuery.toLowerCase();
-    return pos.filter(po =>
-      String(po.indentNumber || '').toLowerCase().includes(query) ||
-      String(po.productNumber || '').toLowerCase().includes(query) ||
-      String(po.poNo || '').toLowerCase().includes(query) ||
-      String(po.supplierName || '').toLowerCase().includes(query) ||
-      String(po.materialName || '').toLowerCase().includes(query) ||
-      String(po.quantity || '').includes(query) ||
-      String(po.rate || '').includes(query) ||
-      (po.issueDate && String(formatDateForDisplay(po.issueDate) || '').toLowerCase().includes(query)) ||
-      String(po.supplierContact || '').toLowerCase().includes(query) ||
-      String(po.modeOfSend || '').toLowerCase().includes(query) ||
-      String(po.attachmentName || '').toLowerCase().includes(query) ||
-      String(po.status || '').toLowerCase().includes(query)
+    return pos.filter(
+      (po) =>
+        String(po.indentNumber || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.productNumber || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.poNo || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.supplierName || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.materialName || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.quantity || "").includes(query) ||
+        String(po.rate || "").includes(query) ||
+        (po.issueDate &&
+          String(formatDateForDisplay(po.issueDate) || "")
+            .toLowerCase()
+            .includes(query)) ||
+        String(po.supplierContact || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.modeOfSend || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.attachmentName || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(po.status || "")
+          .toLowerCase()
+          .includes(query)
     );
   };
-
 
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
       <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Issue PO</h2>
 
-
-
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setTab("pending")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "pending"
-            ? "border-blue-600 text-blue-600"
-            : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "pending"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
         >
           Pending ({posPending.length})
         </button>
         <button
           onClick={() => setTab("history")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "history"
-            ? "border-blue-600 text-blue-600"
-            : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "history"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
         >
           History ({posHistory.length})
         </button>
@@ -605,9 +630,6 @@ export function POIssuePage() {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <p className="font-semibold text-gray-900">{po.poNo}</p>
-                        <p className="text-sm text-gray-600">
-                          {po.supplierName}
-                        </p>
                       </div>
                       <span className="text-xs font-medium text-yellow-800 bg-yellow-100 px-2.5 py-0.5 rounded-full">
                         Pending
@@ -635,6 +657,12 @@ export function POIssuePage() {
                         <p className="text-gray-500">Rate</p>
                         <p className="font-medium">₹{po.rate}</p>
                       </div>
+                      <div>
+                        <p>Supplier Name</p>
+                        <p className="text-sm text-gray-600">
+                          {po.supplierName}
+                        </p>
+                        </div>
                     </div>
 
                     <Button
@@ -781,7 +809,9 @@ export function POIssuePage() {
                       </div>
                       <div>
                         <p className="text-gray-500">Issue Date</p>
-                        <p className="font-medium text-xs">{formatDateForDisplay(po.issueDate)}</p>
+                        <p className="font-medium text-xs">
+                          {formatDateForDisplay(po.issueDate)}
+                        </p>
                       </div>
                       {po.attachmentName && (
                         <div className="col-span-2">
@@ -798,8 +828,6 @@ export function POIssuePage() {
                         </div>
                       )}
                     </div>
-
-
                   </div>
                 ))}
               </div>
@@ -819,19 +847,19 @@ export function POIssuePage() {
           <LabeledInput
             label="PO No."
             value={selectedPO?.poNo || ""}
-            onChange={() => { }}
+            onChange={() => {}}
             disabled
           />
           <LabeledInput
             label="Indent No."
             value={selectedPO?.indentNumber || ""}
-            onChange={() => { }}
+            onChange={() => {}}
             disabled
           />
           <LabeledInput
             label="Product No."
             value={selectedPO?.productNumber || ""}
-            onChange={() => { }}
+            onChange={() => {}}
             disabled
           />
           <LabeledInput
@@ -863,8 +891,8 @@ export function POIssuePage() {
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option>WhatsApp</option>
-              <option>Email</option>
+               <option value="WhatsApp">WhatsApp</option>
+    <option value="Email">Email</option>
             </select>
           </div>
           <div>
@@ -901,9 +929,7 @@ export function POIssuePage() {
                   Issuing...
                 </>
               ) : (
-                <>
-                  Issue PO
-                </>
+                <>Issue PO</>
               )}
             </Button>
             <Button
@@ -927,7 +953,8 @@ export function POIssuePage() {
         <form onSubmit={handleCancel} className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
-              Are you sure you want to cancel this PO? This action cannot be undone.
+              Are you sure you want to cancel this PO? This action cannot be
+              undone.
             </p>
           </div>
 
