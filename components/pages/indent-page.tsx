@@ -12,8 +12,6 @@ import { useEffect } from "react"; // Add this import
 
 import { Switch } from "@/components/ui/switch";
 
-
-
 // Reusable Labeled Input (since Input doesn't support label)
 function LabeledInput({
   label,
@@ -46,16 +44,21 @@ function LabeledInput({
         placeholder={placeholder}
         disabled={disabled}
         className="w-full"
-        required={required} 
-        {...props} 
+        required={required}
+        {...props}
       />
     </div>
   );
 }
 
 export function IndentPage() {
-  const { records, addRecord, getRecordsByStage, moveRecordToStage, clearRecords } =
-    useProcurement();
+  const {
+    records,
+    addRecord,
+    getRecordsByStage,
+    moveRecordToStage,
+    clearRecords,
+  } = useProcurement();
   const indents = getRecordsByStage("indent");
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -63,38 +66,53 @@ export function IndentPage() {
   const [selected, setSelected] = useState<(typeof indents)[0] | null>(null);
   const [loading, setLoading] = useState(false);
 
-
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [cancelForm, setCancelForm] = useState<CancelForm>({
-    remark: ""
+    remark: "",
   });
-  const [indentToCancel, setIndentToCancel] = useState<(typeof indents)[0] | null>(null);
+  const [indentToCancel, setIndentToCancel] = useState<
+    (typeof indents)[0] | null
+  >(null);
 
   const [searchTerm, setSearchTerm] = useState("");
 
-// Remove the original displayedIndents declaration and replace it with:
-const displayedIndents = getRecordsByStage("indent") || [];
+  // Remove the original displayedIndents declaration and replace it with:
+  const displayedIndents = getRecordsByStage("indent") || [];
 
+  const filteredIndents = displayedIndents.filter((indent) => {
+    if (!searchTerm) return true;
 
-const filteredIndents = displayedIndents.filter((indent) => {
-  if (!searchTerm) return true;
-  
-  const term = searchTerm.toLowerCase();
-  return (
-    String(indent.indentNumber || '').toLowerCase().includes(term) ||
-    String(indent.productNumber || '').toLowerCase().includes(term) ||
-    String(indent.poNo || '').toLowerCase().includes(term) ||
-    String(indent.supplierName || '').toLowerCase().includes(term) ||
-    String(indent.materialName || '').toLowerCase().includes(term) ||
-    String(indent.quantity || '').toLowerCase().includes(term) ||
-    String(indent.rate || '').toLowerCase().includes(term) ||
-    String(indent.deliveryDate || '').toLowerCase().includes(term) ||
-    String(indent.status || '').toLowerCase().includes(term)
-  );
-});
-
-
-
+    const term = searchTerm.toLowerCase();
+    return (
+      String(indent.indentNumber || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.productNumber || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.poNo || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.supplierName || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.materialName || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.quantity || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.rate || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.deliveryDate || "")
+        .toLowerCase()
+        .includes(term) ||
+      String(indent.status || "")
+        .toLowerCase()
+        .includes(term)
+    );
+  });
 
   // Modal States
   interface MaterialItem {
@@ -111,14 +129,15 @@ const filteredIndents = displayedIndents.filter((indent) => {
   // Form State
   const [form, setForm] = useState({
     supplierName: "",
-    materials: [{ materialName: "", quantity: "", rate: "", unit: "" }] as MaterialItem[],
+    materials: [
+      { materialName: "", quantity: "", rate: "", unit: "" },
+    ] as MaterialItem[],
     poNumber: "", // Add this line
-    qcInspectionRequired: true, 
+    qcInspectionRequired: true,
     quantity: "",
     rate: "",
     deliveryDate: "",
   });
-
 
   const resetForm = () => {
     setForm({
@@ -135,7 +154,10 @@ const filteredIndents = displayedIndents.filter((indent) => {
   const addMaterial = () => {
     setForm((f) => ({
       ...f,
-      materials: [...f.materials, { materialName: "", quantity: "", rate: "", unit: "" }],
+      materials: [
+        ...f.materials,
+        { materialName: "", quantity: "", rate: "", unit: "" },
+      ],
     }));
   };
 
@@ -146,7 +168,11 @@ const filteredIndents = displayedIndents.filter((indent) => {
     }));
   };
 
-  const updateMaterial = (index: number, field: keyof MaterialItem, value: string) => {
+  const updateMaterial = (
+    index: number,
+    field: keyof MaterialItem,
+    value: string
+  ) => {
     setForm((f) => ({
       ...f,
       materials: f.materials.map((material, i) =>
@@ -155,17 +181,29 @@ const filteredIndents = displayedIndents.filter((indent) => {
     }));
   };
 
-
   const unitOptions = [
-    "","kg", "liter", "piece", "pack", "box", "meter", "gram", "ton", "bag", "carton", "roll", "pair", "other"
+    "",
+    "Kg",
+    "Liter",
+    "Piece",
+    "Pack",
+    "Box",
+    "Meter",
+    "Gram",
+    "Ton",
+    "Bag",
+    "Carton",
+    "Roll",
+    "Pair",
+    "Other",
   ];
-
-
 
   // Add this function to generate indent numbers
   const generateIndentNumber = async () => {
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=FMS&action=fetch");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=FMS&action=fetch"
+      );
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -175,8 +213,12 @@ const filteredIndents = displayedIndents.filter((indent) => {
         let highestNumber = 0;
         sheetData.forEach((row: any[]) => {
           const indentNumber = row[1]; // Column B - Indent Number
-          if (indentNumber && typeof indentNumber === 'string' && indentNumber.startsWith('IN-')) {
-            const numberPart = parseInt(indentNumber.replace('IN-', ''));
+          if (
+            indentNumber &&
+            typeof indentNumber === "string" &&
+            indentNumber.startsWith("IN-")
+          ) {
+            const numberPart = parseInt(indentNumber.replace("IN-", ""));
             if (!isNaN(numberPart) && numberPart > highestNumber) {
               highestNumber = numberPart;
             }
@@ -185,20 +227,21 @@ const filteredIndents = displayedIndents.filter((indent) => {
 
         // Generate next indent number
         const nextNumber = highestNumber + 1;
-        return `IN-${String(nextNumber).padStart(3, '0')}`;
+        return `IN-${String(nextNumber).padStart(3, "0")}`;
       }
     } catch (error) {
       console.error("Error generating indent number:", error);
     }
 
     // Default to IN-001 if no data or error
-    return 'IN-001';
+    return "IN-001";
   };
-
 
   const generateCancelSerialNumber = async () => {
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch"
+      );
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -208,8 +251,12 @@ const filteredIndents = displayedIndents.filter((indent) => {
         let highestNumber = 0;
         sheetData.forEach((row: any[]) => {
           const serialNumber = row[1]; // Column B - Serial Number
-          if (serialNumber && typeof serialNumber === 'string' && serialNumber.startsWith('SN-')) {
-            const numberPart = parseInt(serialNumber.replace('SN-', ''));
+          if (
+            serialNumber &&
+            typeof serialNumber === "string" &&
+            serialNumber.startsWith("SN-")
+          ) {
+            const numberPart = parseInt(serialNumber.replace("SN-", ""));
             if (!isNaN(numberPart) && numberPart > highestNumber) {
               highestNumber = numberPart;
             }
@@ -218,14 +265,14 @@ const filteredIndents = displayedIndents.filter((indent) => {
 
         // Generate next serial number
         const nextNumber = highestNumber + 1;
-        return `SN-${String(nextNumber).padStart(3, '0')}`;
+        return `SN-${String(nextNumber).padStart(3, "0")}`;
       }
     } catch (error) {
       console.error("Error generating serial number:", error);
     }
 
     // Default to SN-001 if no data or error
-    return 'SN-001';
+    return "SN-001";
   };
 
   const handleCancel = async (e: React.FormEvent) => {
@@ -241,32 +288,35 @@ const filteredIndents = displayedIndents.filter((indent) => {
 
       // Prepare row data for Cancel sheet
       const rowData = [
-        timestamp,                    // Column A - Timestamp
-        serialNumber,                // Column B - Serial Number (auto-generated)
+        timestamp, // Column A - Timestamp
+        serialNumber, // Column B - Serial Number (auto-generated)
         indentToCancel.indentNumber, // Column C - Indent No. (auto)
         indentToCancel.productNumber, // Column D - Product No. (auto)
         indentToCancel.supplierName, // Column E - Supplier Name (auto)
         indentToCancel.materialName, // Column F - Material Name (auto)
-        indentToCancel.quantity,     // Column G - Quantity (auto)
-        indentToCancel.rate,         // Column H - Rate (auto)
-        "Indent Details",            // Column I - Stage (fixed as per requirement)
-        cancelForm.remark            // Column J - Remark (user input)
+        indentToCancel.quantity, // Column G - Quantity (auto)
+        indentToCancel.rate, // Column H - Rate (auto)
+        "Indent Details", // Column I - Stage (fixed as per requirement)
+        cancelForm.remark, // Column J - Remark (user input)
       ];
 
       console.log("Submitting cancel data to Google Sheets:", rowData);
 
       // Submit to Google Apps Script - Cancel sheet
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          action: "insert",
-          sheetName: "Cancel",
-          rowData: JSON.stringify(rowData)
-        })
-      });
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "insert",
+            sheetName: "Cancel",
+            rowData: JSON.stringify(rowData),
+          }),
+        }
+      );
 
       const result = await response.json();
 
@@ -300,205 +350,125 @@ const filteredIndents = displayedIndents.filter((indent) => {
     setIsCancelOpen(true);
   };
 
-  // Create Indent and submit to Google Sheets
-  // const handleCreate = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //    const htmlForm = e.target as HTMLFormElement;
-  // if (!htmlForm.checkValidity()) {
-  //   htmlForm.reportValidity();
-  //   return;
-  // }
-
-
-  //   setLoading(true);
-
-  //   try {
-  //     // Generate indent number
-  //     const indentNumber = await generateIndentNumber();
-
-  //     // Format date to dd/mm/yyyy
-  //     const formatDate = (dateString: string) => {
-  //       const date = new Date(dateString);
-  //       const day = String(date.getDate()).padStart(2, '0');
-  //       const month = String(date.getMonth() + 1).padStart(2, '0');
-  //       const year = date.getFullYear();
-  //       return `${day}/${month}/${year}`;
-  //     };
-
-  //     const timestamp = new Date().toLocaleString();
-  //     const formattedDeliveryDate = formatDate(form.deliveryDate);
-
-  //     // Submit each material as a separate row with product number
-  //     const submissionPromises = form.materials.map(async (material, index) => {
-  //       // Generate product number for each material (1, 2, 3, ...)
-  //       const productNumber = index + 1;
-
-  //       // Prepare row data for Google Sheets with correct column order
-  //       const rowData = [
-  //         timestamp,                    // Column A - Timestamp
-  //         indentNumber,                // Column B - Indent Number (auto-generated)
-  //         productNumber,               // Column C - Product Number (1, 2, 3, ...)
-  //         form.supplierName,           // Column D - Supplier Name
-  //         material.materialName,       // Column E - Material Name
-  //         form.poNumber,               // Column F - PO number (manual)
-  //         `${material.quantity} ${material.unit}`, // Column G - Quantity with unit
-  //         Number(material.rate),       // Column H - Rate
-  //         formattedDeliveryDate        // Column I - Delivery Date (formatted)
-          
-  //       ];
-
-  //       console.log("Submitting data to Google Sheets:", rowData);
-
-  //       // Submit to Google Apps Script
-  //       const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/x-www-form-urlencoded",
-  //         },
-  //         body: new URLSearchParams({
-  //           action: "insert",
-  //           sheetName: "FMS",
-  //           rowData: JSON.stringify(rowData)
-  //         })
-  //       });
-
-  //       return response.json();
-  //     });
-
-  //     const results = await Promise.all(submissionPromises);
-  //     const allSuccess = results.every(result => result.success);
-
-  //     if (allSuccess) {
-  //       resetForm();
-  //       setIsCreateOpen(false);
-  //       console.log("All materials created successfully in Google Sheets");
-  //       await fetchIndentsFromSheet();
-  //     } else {
-  //       console.error("Failed to save some materials to Google Sheets");
-  //       alert("Failed to save some materials. Please check the console for details.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error creating indent:", error);
-  //     alert("Error creating indent: " + error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-
   const formatTimestamp = () => {
-  const d = new Date();
-  
-  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
-  let day = String(d.getDate()).padStart(2, '0');        // DD
-  let year = d.getFullYear();                            // YYYY
-  
-  let hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
-  
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12; // Convert 0 → 12
-  
-  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
-};
+    const d = new Date();
 
+    let month = String(d.getMonth() + 1).padStart(2, "0"); // MM
+    let day = String(d.getDate()).padStart(2, "0"); // DD
+    let year = d.getFullYear(); // YYYY
+
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 0 → 12
+
+    return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const htmlForm = e.target as HTMLFormElement;
-  if (!htmlForm.checkValidity()) {
-    htmlForm.reportValidity();
-    return;
-  }
+    const htmlForm = e.target as HTMLFormElement;
+    if (!htmlForm.checkValidity()) {
+      htmlForm.reportValidity();
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    // Generate indent number
-    const indentNumber = await generateIndentNumber();
+    try {
+      // Generate indent number
+      const indentNumber = await generateIndentNumber();
 
-    // Format date to dd/mm/yyyy
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    };
+      // Format date to dd/mm/yyyy
+      const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
 
+      // const timestamp = new Date().toLocaleString();
+      const timestamp = formatTimestamp();
 
-    // const timestamp = new Date().toLocaleString();
-    const timestamp = formatTimestamp();
-    
+      const formattedDeliveryDate = formatDate(form.deliveryDate);
 
-    const formattedDeliveryDate = formatDate(form.deliveryDate);
+      // Submit each material as a separate row with product number
+      const submissionPromises = form.materials.map(async (material, index) => {
+        // Generate product number for each material (1, 2, 3, ...)
+        const productNumber = index + 1;
 
-    // Submit each material as a separate row with product number
-    const submissionPromises = form.materials.map(async (material, index) => {
-      // Generate product number for each material (1, 2, 3, ...)
-      const productNumber = index + 1;
+        // Create an array with 58 elements (for columns A to BG)
+        const rowData = new Array(58).fill(""); // Initialize all columns as empty
 
-      // Create an array with 58 elements (for columns A to BG)
-      const rowData = new Array(58).fill(''); // Initialize all columns as empty
-      
-      // Fill the specific columns with data
-      rowData[0] = timestamp;                    // Column A - Timestamp
-      rowData[1] = indentNumber;                // Column B - Indent Number
-      rowData[2] = productNumber;               // Column C - Product Number
-      rowData[3] = form.supplierName;           // Column D - Supplier Name
-      rowData[4] = material.materialName;       // Column E - Material Name
-      rowData[5] = form.poNumber;               // Column F - PO number
-      rowData[6] = `${material.quantity} ${material.unit}`; // Column G - Quantity with unit
-      rowData[7] = Number(material.rate);       // Column H - Rate
-      rowData[8] = formattedDeliveryDate;       // Column I - Delivery Date
-      rowData[58] = form.qcInspectionRequired ? "Yes" : "No"; // Column BG (index 57) - QC Inspection Required
+        // Fill the specific columns with data
+        rowData[0] = timestamp; // Column A - Timestamp
+        rowData[1] = indentNumber; // Column B - Indent Number
+        rowData[2] = productNumber; // Column C - Product Number
+        rowData[3] = form.supplierName; // Column D - Supplier Name
+        rowData[4] = material.materialName; // Column E - Material Name
+        rowData[5] = form.poNumber; // Column F - PO number
+        rowData[6] = `${material.quantity} ${material.unit}`; // Column G - Quantity with unit
+        rowData[7] = Number(material.rate); // Column H - Rate
+        rowData[8] = formattedDeliveryDate; // Column I - Delivery Date
+        rowData[58] = form.qcInspectionRequired ? "Yes" : "No"; // Column BG (index 57) - QC Inspection Required
 
-      console.log("Submitting data to Google Sheets:", rowData);
-      console.log("QC Inspection going to column BG (index 57):", rowData[57]);
+        console.log("Submitting data to Google Sheets:", rowData);
+        console.log(
+          "QC Inspection going to column BG (index 57):",
+          rowData[57]
+        );
 
-      // Submit to Google Apps Script
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          action: "insert",
-          sheetName: "FMS",
-          rowData: JSON.stringify(rowData)
-        })
+        // Submit to Google Apps Script
+        const response = await fetch(
+          "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              action: "insert",
+              sheetName: "FMS",
+              rowData: JSON.stringify(rowData),
+            }),
+          }
+        );
+
+        return response.json();
       });
 
-      return response.json();
-    });
+      const results = await Promise.all(submissionPromises);
+      const allSuccess = results.every((result) => result.success);
 
-    const results = await Promise.all(submissionPromises);
-    const allSuccess = results.every(result => result.success);
-
-    if (allSuccess) {
-      resetForm();
-      setIsCreateOpen(false);
-      console.log("All materials created successfully in Google Sheets");
-      await fetchIndentsFromSheet();
-    } else {
-      console.error("Failed to save some materials to Google Sheets");
-      alert("Failed to save some materials. Please check the console for details.");
+      if (allSuccess) {
+        resetForm();
+        setIsCreateOpen(false);
+        console.log("All materials created successfully in Google Sheets");
+        await fetchIndentsFromSheet();
+      } else {
+        console.error("Failed to save some materials to Google Sheets");
+        alert(
+          "Failed to save some materials. Please check the console for details."
+        );
+      }
+    } catch (error) {
+      console.error("Error creating indent:", error);
+      alert("Error creating indent: " + error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error creating indent:", error);
-    alert("Error creating indent: " + error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const fetchIndentsFromSheet = async () => {
     try {
       setLoading(true); // Add loading state
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=FMS&action=fetch");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=FMS&action=fetch"
+      );
       const result = await response.json();
 
       console.log("Fetched data from API:", result);
@@ -507,39 +477,39 @@ const filteredIndents = displayedIndents.filter((indent) => {
         const sheetData = result.data.slice(7); // Remove header rows
 
         const formattedIndents = sheetData.map((row: any[], index: number) => {
-          const quantityWithUnit = row[6] || ''; // Column G - Quantity with unit
+          const quantityWithUnit = row[6] || ""; // Column G - Quantity with unit
 
           const formatDate = (dateString: string) => {
-          if (!dateString) return '';
-          
-          try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString; // Return original if invalid
-            
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            
-            return `${day}/${month}/${year}`;
-          } catch (error) {
-            console.error("Error formatting date:", dateString, error);
-            return dateString;
-          }
-        };
+            if (!dateString) return "";
+
+            try {
+              const date = new Date(dateString);
+              if (isNaN(date.getTime())) return dateString; // Return original if invalid
+
+              const day = String(date.getDate()).padStart(2, "0");
+              const month = String(date.getMonth() + 1).padStart(2, "0");
+              const year = date.getFullYear();
+
+              return `${day}/${month}/${year}`;
+            } catch (error) {
+              console.error("Error formatting date:", dateString, error);
+              return dateString;
+            }
+          };
 
           return {
             id: `sheet-${index}-${row[1]}-${row[2]}`,
-            indentNumber: row[1] || '',
-            productNumber: row[2] || '',
-            poNo: row[5] || '',
-            supplierName: row[3] || '',
-            materialName: row[4] || '',
+            indentNumber: row[1] || "",
+            productNumber: row[2] || "",
+            poNo: row[5] || "",
+            supplierName: row[3] || "",
+            materialName: row[4] || "",
             quantity: quantityWithUnit, // Keep the full string with unit
             rate: row[7] || 0,
             deliveryDate: formatDate(row[8]),
             stage: "indent" as const,
-            status: row[57] || '',
-            createdAt: row[0] || '',
+            status: row[57] || "",
+            createdAt: row[0] || "",
           };
         });
 
@@ -564,9 +534,6 @@ const filteredIndents = displayedIndents.filter((indent) => {
     console.log("Component mounted, fetching data...");
     fetchIndentsFromSheet();
   }, []);
-
-
-
 
   const openView = (indent: (typeof indents)[0]) => {
     setSelected(indent);
@@ -596,14 +563,14 @@ const filteredIndents = displayedIndents.filter((indent) => {
       </div>
 
       <div className="mt-4">
-  <Input
-    type="text"
-    placeholder="Search all columns..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="w-full sm:max-w-md"
-  />
-</div>
+        <Input
+          type="text"
+          placeholder="Search all columns..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full sm:max-w-md"
+        />
+      </div>
 
       {/* Table / Cards */}
       <Card className="mt-6 overflow-hidden">
@@ -628,14 +595,13 @@ const filteredIndents = displayedIndents.filter((indent) => {
                       "Action",
                       "Indent No.",
                       "Product No.",
-                      "PO No.",  // Add PO No. back
+                      "PO No.", // Add PO No. back
                       "Supplier",
                       "Material",
                       "Qty",
                       "Rate",
                       "Delivery",
                       "Status",
-
                     ].map((h) => (
                       <th
                         key={h}
@@ -664,7 +630,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
-                        {i.indentNumber}  {/* Changed from i.poNo */}
+                        {i.indentNumber} {/* Changed from i.poNo */}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
                         {i.productNumber} {/* NEW COLUMN */}
@@ -692,7 +658,6 @@ const filteredIndents = displayedIndents.filter((indent) => {
                           {i.status}
                         </span>
                       </td>
-
                     </tr>
                   ))}
                 </tbody>
@@ -712,7 +677,8 @@ const filteredIndents = displayedIndents.filter((indent) => {
                       <p className="text-sm text-gray-600">{i.supplierName}</p>
 
                       <p className="text-xs text-gray-500">
-                        Indent: {i.indentNumber} | Product: {i.productNumber} {/* NEW */}
+                        Indent: {i.indentNumber} | Product: {i.productNumber}{" "}
+                        {/* NEW */}
                       </p>
                     </div>
                     <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
@@ -790,7 +756,9 @@ const filteredIndents = displayedIndents.filter((indent) => {
                 QC Inspection Required
               </label>
               <p className="text-xs text-gray-500 mt-1">
-                {form.qcInspectionRequired ? "Yes - QC inspection will be required" : "No - QC inspection not required"}
+                {form.qcInspectionRequired
+                  ? "Yes - QC inspection will be required"
+                  : "No - QC inspection not required"}
               </p>
             </div>
             <Switch
@@ -801,7 +769,6 @@ const filteredIndents = displayedIndents.filter((indent) => {
               className="data-[state=checked]:bg-blue-600"
             />
           </div>
-
 
           {/* Materials Section */}
           <div className="space-y-4">
@@ -822,9 +789,14 @@ const filteredIndents = displayedIndents.filter((indent) => {
             </div>
 
             {form.materials.map((material, index) => (
-              <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-3">
+              <div
+                key={index}
+                className="p-4 border border-gray-200 rounded-lg space-y-3"
+              >
                 <div className="flex justify-between items-center">
-                  <h4 className="font-medium text-sm text-gray-700">Material #{index + 1}</h4>
+                  <h4 className="font-medium text-sm text-gray-700">
+                    Material #{index + 1}
+                  </h4>
                   {form.materials.length > 1 && (
                     <Button
                       type="button"
@@ -841,9 +813,10 @@ const filteredIndents = displayedIndents.filter((indent) => {
                 <LabeledInput
                   label="Material Name"
                   value={material.materialName}
-                  onChange={(e) => updateMaterial(index, 'materialName', e.target.value)}
+                  onChange={(e) =>
+                    updateMaterial(index, "materialName", e.target.value)
+                  }
                   placeholder="Steel Rods 12mm"
-                  
                 />
 
                 {/* Fixed Quantity and Unit Layout */}
@@ -853,9 +826,10 @@ const filteredIndents = displayedIndents.filter((indent) => {
                       label="Quantity"
                       type="number"
                       value={material.quantity}
-                      onChange={(e) => updateMaterial(index, 'quantity', e.target.value)}
+                      onChange={(e) =>
+                        updateMaterial(index, "quantity", e.target.value)
+                      }
                       placeholder="100"
-                      
                     />
                   </div>
                   <div>
@@ -864,7 +838,9 @@ const filteredIndents = displayedIndents.filter((indent) => {
                     </label>
                     <select
                       value={material.unit}
-                      onChange={(e) => updateMaterial(index, 'unit', e.target.value)}
+                      onChange={(e) =>
+                        updateMaterial(index, "unit", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     >
                       {unitOptions.map((unit) => (
@@ -876,7 +852,7 @@ const filteredIndents = displayedIndents.filter((indent) => {
                   </div>
                 </div>
 
-                <LabeledInput
+                {/* <LabeledInput
                   label="Rate (₹)"
                   type="number"
                   value={material.rate}
@@ -884,6 +860,40 @@ const filteredIndents = displayedIndents.filter((indent) => {
                   placeholder="850"
                   
                 />
+ */}
+
+                <div className="flex items-center gap-2">
+                  {/* Rate Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Rate (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={material.rate}
+                      onChange={(e) =>
+                        updateMaterial(index, "rate", e.target.value)
+                      }
+                      placeholder="850"
+                      className="w-48 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Computed Qty × Rate */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Total
+                    </label>
+                    <span className="inline-block px-2 py-1 text-gray-700 font-medium">
+                      ₹
+                      {(() => {
+                        const qty = parseFloat(material.quantity) || 0;
+                        const rate = parseFloat(material.rate) || 0;
+                        return qty * rate;
+                      })()}
+                    </span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -918,7 +928,6 @@ const filteredIndents = displayedIndents.filter((indent) => {
           </div>
         </form>
       </Modal>
-
 
       {/* === VIEW INDENT MODAL === */}
       {selected && (
@@ -972,16 +981,19 @@ const filteredIndents = displayedIndents.filter((indent) => {
               <div>
                 <span className="text-gray-500">Total</span>
                 <p className="font-semibold">
-                  ₹{(() => {
-              // Extract only numbers from quantity (remove units)
-              const quantityStr = String(selected.quantity || '');
-              const quantityMatch = quantityStr.match(/(\d+\.?\d*)/);
-              const quantityValue = quantityMatch ? parseFloat(quantityMatch[1]) : 0;
-              
-              const rateValue = parseFloat(selected.rate) || 0;
-              
-              return (quantityValue * rateValue).toFixed(2);
-            })()}
+                  ₹
+                  {(() => {
+                    // Extract only numbers from quantity (remove units)
+                    const quantityStr = String(selected.quantity || "");
+                    const quantityMatch = quantityStr.match(/(\d+\.?\d*)/);
+                    const quantityValue = quantityMatch
+                      ? parseFloat(quantityMatch[1])
+                      : 0;
+
+                    const rateValue = parseFloat(selected.rate) || 0;
+
+                    return (quantityValue * rateValue).toFixed(2);
+                  })()}
                 </p>
               </div>
             </div>
@@ -1002,8 +1014,6 @@ const filteredIndents = displayedIndents.filter((indent) => {
                 Cancel Indent
               </Button>
             </div>
-
-
           </div>
         </Modal>
       )}
@@ -1016,7 +1026,8 @@ const filteredIndents = displayedIndents.filter((indent) => {
         <form onSubmit={handleCancel} className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
-              Are you sure you want to cancel this indent? This action cannot be undone.
+              Are you sure you want to cancel this indent? This action cannot be
+              undone.
             </p>
           </div>
 
@@ -1024,13 +1035,21 @@ const filteredIndents = displayedIndents.filter((indent) => {
             <div className="space-y-2 text-sm">
               <div className="grid grid-cols-2 gap-2">
                 <span className="text-gray-500">Indent No:</span>
-                <span className="font-medium">{indentToCancel.indentNumber}</span>
+                <span className="font-medium">
+                  {indentToCancel.indentNumber}
+                </span>
                 <span className="text-gray-500">Product No:</span>
-                <span className="font-medium">{indentToCancel.productNumber}</span>
+                <span className="font-medium">
+                  {indentToCancel.productNumber}
+                </span>
                 <span className="text-gray-500">Supplier:</span>
-                <span className="font-medium">{indentToCancel.supplierName}</span>
+                <span className="font-medium">
+                  {indentToCancel.supplierName}
+                </span>
                 <span className="text-gray-500">Material:</span>
-                <span className="font-medium">{indentToCancel.materialName}</span>
+                <span className="font-medium">
+                  {indentToCancel.materialName}
+                </span>
               </div>
             </div>
           )}

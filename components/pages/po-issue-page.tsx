@@ -871,16 +871,32 @@ export function POIssuePage() {
             }
             required
           />
-          <LabeledInput
+          {/* <LabeledInput
             label="Supplier Contact"
-            placeholder="Phone / Email"
+            placeholder="Phone"
             value={formData.supplierContact}
             onChange={(e) =>
               setFormData({ ...formData, supplierContact: e.target.value })
             }
             required
-          />
-          <div>
+          /> */}
+
+          <LabeledInput
+  label="Supplier Contact"
+  placeholder="Phone Number"
+  type="tel"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  maxLength={10}
+  value={formData.supplierContact}
+  onChange={(e) => {
+    const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
+    setFormData({ ...formData, supplierContact: value });
+  }}
+  required
+/>
+
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Mode of Send
             </label>
@@ -894,7 +910,21 @@ export function POIssuePage() {
                <option value="WhatsApp">WhatsApp</option>
     <option value="Email">Email</option>
             </select>
-          </div>
+          </div> */}
+          <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Mode of Send
+  </label>
+
+  {/* Read-only display */}
+  <input
+    type="text"
+    value="WhatsApp"
+    disabled
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+  />
+</div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Attachment (PDF)

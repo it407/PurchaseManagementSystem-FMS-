@@ -1,7 +1,15 @@
-
-import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { BarChart3, Calendar, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { BarChart3, Calendar, ChevronDown } from "lucide-react";
 
 interface DataRow {
   planned1?: string;
@@ -32,19 +40,22 @@ const DelayAnalysis = () => {
   // const [data, setData] = useState([]);
   // const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState('today');
+  const [filterType, setFilterType] = useState("today");
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showSixMonthDropdown, setShowSixMonthDropdown] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState('');
-  const [selectedSixMonth, setSelectedSixMonth] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedSixMonth, setSelectedSixMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const [data, setData] = useState<DataRow[]>([]);
   const [filteredData, setFilteredData] = useState<DelayCount[]>([]);
 
-  const [filterYear, setFilterYear] = useState<string>(new Date().getFullYear().toString());
+  const [filterYear, setFilterYear] = useState<string>(
+    new Date().getFullYear().toString()
+  );
 
-  const WEB_URL = "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec";
+  const WEB_URL =
+    "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec";
   const SHEET_NAME = "FMS";
 
   // Fetch data from Google Sheets
@@ -63,7 +74,9 @@ const DelayAnalysis = () => {
       // Approach 1: Try with sheet parameter
       try {
         console.log("Trying API call with sheet parameter...");
-        const response1 = await fetch(`${WEB_URL}?sheet=${SHEET_NAME}&action=fetch`);
+        const response1 = await fetch(
+          `${WEB_URL}?sheet=${SHEET_NAME}&action=fetch`
+        );
         result = await response1.json();
         console.log("API Response (sheet parameter):", result);
       } catch (e) {
@@ -87,7 +100,9 @@ const DelayAnalysis = () => {
         try {
           console.log("Trying API call with sheetId...");
           const sheetId = "1MtxLluyxLJwDV_2fxw4qG0wUOBE4Ys8Wd_ewLeP9czA";
-          const response3 = await fetch(`${WEB_URL}?sheetId=${sheetId}&sheetName=${SHEET_NAME}`);
+          const response3 = await fetch(
+            `${WEB_URL}?sheetId=${sheetId}&sheetName=${SHEET_NAME}`
+          );
           result = await response3.json();
           console.log("API Response (sheetId parameter):", result);
         } catch (e) {
@@ -109,28 +124,28 @@ const DelayAnalysis = () => {
 
           // Find column indices for our needed columns
           const columnMap = {
-            planned1: headers.indexOf('Planned1'),
-            timedelay: headers.indexOf('Time Delay'),
-            planned2: headers.indexOf('Planned2'),
+            planned1: headers.indexOf("Planned1"),
+            timedelay: headers.indexOf("Time Delay"),
+            planned2: headers.indexOf("Planned2"),
             timedelay2: -1, // Need to find second "Time Delay"
-            planned3: headers.indexOf('Planned3'),
+            planned3: headers.indexOf("Planned3"),
             timedelay3: -1,
-            planned4: headers.indexOf('Planned4'),
+            planned4: headers.indexOf("Planned4"),
             timedelay4: -1,
-            planned5: headers.indexOf('Planned5'),
+            planned5: headers.indexOf("Planned5"),
             timedelay5: -1,
-            planned6: headers.indexOf('Planned6'),
+            planned6: headers.indexOf("Planned6"),
             timedelay6: -1,
-            planned7: headers.indexOf('Planned7'),
+            planned7: headers.indexOf("Planned7"),
             timedelay7: -1,
-            planned8: headers.indexOf('Planned9'), // Notice: Planned9 in sheet
-            timedelay8: -1
+            planned8: headers.indexOf("Planned9"), // Notice: Planned9 in sheet
+            timedelay8: -1,
           };
 
           // Find all "Time Delay" columns manually (there are multiple)
           let timeDelayIndices = [];
           headers.forEach((header, idx) => {
-            if (header === 'Time Delay' || header === 'time delay') {
+            if (header === "Time Delay" || header === "time delay") {
               timeDelayIndices.push(idx);
             }
           });
@@ -138,14 +153,22 @@ const DelayAnalysis = () => {
           console.log("Time Delay column indices:", timeDelayIndices);
 
           // Map time delays to our structure
-          if (timeDelayIndices.length >= 1) columnMap.timedelay = timeDelayIndices[0];
-          if (timeDelayIndices.length >= 2) columnMap.timedelay2 = timeDelayIndices[1];
-          if (timeDelayIndices.length >= 3) columnMap.timedelay3 = timeDelayIndices[2];
-          if (timeDelayIndices.length >= 4) columnMap.timedelay4 = timeDelayIndices[3];
-          if (timeDelayIndices.length >= 5) columnMap.timedelay5 = timeDelayIndices[4];
-          if (timeDelayIndices.length >= 6) columnMap.timedelay6 = timeDelayIndices[5];
-          if (timeDelayIndices.length >= 7) columnMap.timedelay7 = timeDelayIndices[6];
-          if (timeDelayIndices.length >= 8) columnMap.timedelay8 = timeDelayIndices[7];
+          if (timeDelayIndices.length >= 1)
+            columnMap.timedelay = timeDelayIndices[0];
+          if (timeDelayIndices.length >= 2)
+            columnMap.timedelay2 = timeDelayIndices[1];
+          if (timeDelayIndices.length >= 3)
+            columnMap.timedelay3 = timeDelayIndices[2];
+          if (timeDelayIndices.length >= 4)
+            columnMap.timedelay4 = timeDelayIndices[3];
+          if (timeDelayIndices.length >= 5)
+            columnMap.timedelay5 = timeDelayIndices[4];
+          if (timeDelayIndices.length >= 6)
+            columnMap.timedelay6 = timeDelayIndices[5];
+          if (timeDelayIndices.length >= 7)
+            columnMap.timedelay7 = timeDelayIndices[6];
+          if (timeDelayIndices.length >= 8)
+            columnMap.timedelay8 = timeDelayIndices[7];
 
           console.log("Column mapping:", columnMap);
 
@@ -167,7 +190,7 @@ const DelayAnalysis = () => {
               planned7: row[columnMap.planned7],
               timedelay7: row[columnMap.timedelay7],
               planned8: row[columnMap.planned8],
-              timedelay8: row[columnMap.timedelay8]
+              timedelay8: row[columnMap.timedelay8],
             };
 
             // Debug first few rows
@@ -178,7 +201,7 @@ const DelayAnalysis = () => {
                 planned2: obj.planned2,
                 timedelay2: obj.timedelay2,
                 planned3: obj.planned3,
-                timedelay3: obj.timedelay3
+                timedelay3: obj.timedelay3,
               });
             }
 
@@ -211,21 +234,20 @@ const DelayAnalysis = () => {
     }
   };
 
+  // Add this helper function after imports
+  const parseDate = (dateStr: string): Date | null => {
+    if (!dateStr || dateStr.trim() === "") return null;
 
-// Add this helper function after imports
-const parseDate = (dateStr: string): Date | null => {
-  if (!dateStr || dateStr.trim() === '') return null;
-  
-  // Handle "DD/MM/YYYY HH:MM:SS" format
-  if (dateStr.includes('/')) {
-    const [datePart, timePart] = dateStr.split(' ');
-    const [day, month, year] = datePart.split('/');
-    return new Date(`${year}-${month}-${day}T${timePart || '00:00:00'}.000Z`);
-  }
-  
-  // Fallback to standard parsing
-  return new Date(dateStr);
-};
+    // Handle "DD/MM/YYYY HH:MM:SS" format
+    if (dateStr.includes("/")) {
+      const [datePart, timePart] = dateStr.split(" ");
+      const [day, month, year] = datePart.split("/");
+      return new Date(`${year}-${month}-${day}T${timePart || "00:00:00"}.000Z`);
+    }
+
+    // Fallback to standard parsing
+    return new Date(dateStr);
+  };
 
   // Generate mock data for testing
   const generateMockData = () => {
@@ -238,21 +260,21 @@ const parseDate = (dateStr: string): Date | null => {
 
       mockRows.push({
         planned1: date.toISOString(),
-        timedelay: i % 3 === 0 ? '2:30:00' : (i % 3 === 1 ? '-1:15:00' : ''),
-        planned2: i % 2 === 0 ? date.toISOString() : '',
-        timedelay2: i % 4 === 0 ? '1:45:00' : (i % 4 === 1 ? '-0:30:00' : ''),
-        planned3: i % 2 === 1 ? date.toISOString() : '',
-        timedelay3: i % 5 === 0 ? '3:20:00' : '',
-        planned4: i % 3 === 0 ? date.toISOString() : '',
-        timedelay4: i % 3 === 0 ? '0:45:00' : '',
-        planned5: i % 4 === 0 ? date.toISOString() : '',
-        timedelay5: i % 4 === 0 ? '2:10:00' : '',
-        planned6: i % 5 === 0 ? date.toISOString() : '',
-        timedelay6: i % 5 === 0 ? '1:30:00' : '',
-        planned7: i % 3 === 0 ? date.toISOString() : '',
-        timedelay7: i % 3 === 0 ? '4:00:00' : '',
-        planned8: i % 6 === 0 ? date.toISOString() : '',
-        timedelay8: i % 6 === 0 ? '5:15:00' : ''
+        timedelay: i % 3 === 0 ? "2:30:00" : i % 3 === 1 ? "-1:15:00" : "",
+        planned2: i % 2 === 0 ? date.toISOString() : "",
+        timedelay2: i % 4 === 0 ? "1:45:00" : i % 4 === 1 ? "-0:30:00" : "",
+        planned3: i % 2 === 1 ? date.toISOString() : "",
+        timedelay3: i % 5 === 0 ? "3:20:00" : "",
+        planned4: i % 3 === 0 ? date.toISOString() : "",
+        timedelay4: i % 3 === 0 ? "0:45:00" : "",
+        planned5: i % 4 === 0 ? date.toISOString() : "",
+        timedelay5: i % 4 === 0 ? "2:10:00" : "",
+        planned6: i % 5 === 0 ? date.toISOString() : "",
+        timedelay6: i % 5 === 0 ? "1:30:00" : "",
+        planned7: i % 3 === 0 ? date.toISOString() : "",
+        timedelay7: i % 3 === 0 ? "4:00:00" : "",
+        planned8: i % 6 === 0 ? date.toISOString() : "",
+        timedelay8: i % 6 === 0 ? "5:15:00" : "",
       });
     }
 
@@ -262,8 +284,10 @@ const parseDate = (dateStr: string): Date | null => {
 
   // Parse time delay string (format: "4:02:56" or "-4:02:56")
   // Parse time delay string - handles both "HH:MM:SS" format and ISO date format
-  const parseTimeDelay = (timeStr: string | undefined | null): number | null => {
-    if (!timeStr || timeStr.trim() === '') {
+  const parseTimeDelay = (
+    timeStr: string | undefined | null
+  ): number | null => {
+    if (!timeStr || timeStr.trim() === "") {
       console.log("Empty time delay string");
       return null;
     }
@@ -271,17 +295,21 @@ const parseDate = (dateStr: string): Date | null => {
     console.log("Parsing time delay:", timeStr);
 
     // Check if it's an ISO date string (from Google Sheets)
-    if (timeStr.includes('T') && timeStr.includes('Z')) {
+    if (timeStr.includes("T") && timeStr.includes("Z")) {
       try {
         const date = new Date(timeStr);
 
         // Google Sheets stores time as days since 1899-12-30
         // For negative times, it uses dates before 1899-12-30
-        const baseDate = new Date('1899-12-30T00:00:00.000Z');
+        const baseDate = new Date("1899-12-30T00:00:00.000Z");
         const diffMs = date.getTime() - baseDate.getTime();
         const diffSeconds = Math.floor(diffMs / 1000);
 
-        console.log(`ISO Date: ${timeStr} -> Seconds: ${diffSeconds} (Positive: ${diffSeconds > 0})`);
+        console.log(
+          `ISO Date: ${timeStr} -> Seconds: ${diffSeconds} (Positive: ${
+            diffSeconds > 0
+          })`
+        );
         return diffSeconds;
       } catch (e) {
         console.log("Failed to parse ISO date:", e);
@@ -290,10 +318,10 @@ const parseDate = (dateStr: string): Date | null => {
     }
 
     // Handle "HH:MM:SS" format
-    const isNegative = String(timeStr).trim().startsWith('-');
-    const cleanStr = String(timeStr).trim().replace('-', '');
+    const isNegative = String(timeStr).trim().startsWith("-");
+    const cleanStr = String(timeStr).trim().replace("-", "");
 
-    const parts = cleanStr.split(':');
+    const parts = cleanStr.split(":");
     if (parts.length !== 3) {
       console.log("Invalid time format:", timeStr);
       return null;
@@ -306,13 +334,23 @@ const parseDate = (dateStr: string): Date | null => {
     const totalSeconds = hours * 3600 + minutes * 60 + seconds;
     const result = isNegative ? -totalSeconds : totalSeconds;
 
-    console.log(`Time: ${timeStr} -> Seconds: ${result} (Positive: ${result > 0})`);
+    console.log(
+      `Time: ${timeStr} -> Seconds: ${result} (Positive: ${result > 0})`
+    );
     return result;
   };
 
   // Check if delay should be counted
-  const shouldCountDelay = (plannedValue: any, timeDelayValue: any): boolean => {
-    console.log("Checking delay - Planned:", plannedValue, "TimeDelay:", timeDelayValue);
+  const shouldCountDelay = (
+    plannedValue: any,
+    timeDelayValue: any
+  ): boolean => {
+    console.log(
+      "Checking delay - Planned:",
+      plannedValue,
+      "TimeDelay:",
+      timeDelayValue
+    );
 
     // If planned is null/empty, don't count
     if (!plannedValue || plannedValue === null || plannedValue === undefined) {
@@ -322,20 +360,24 @@ const parseDate = (dateStr: string): Date | null => {
 
     // Convert to string and check if empty
     const plannedStr = String(plannedValue).trim();
-    if (plannedStr === '') {
+    if (plannedStr === "") {
       console.log("Planned is empty string - NOT counting");
       return false;
     }
 
     // If timeDelay is null/empty, don't count
-    if (!timeDelayValue || timeDelayValue === null || timeDelayValue === undefined) {
+    if (
+      !timeDelayValue ||
+      timeDelayValue === null ||
+      timeDelayValue === undefined
+    ) {
       console.log("TimeDelay is null/empty - NOT counting");
       return false;
     }
 
     // Convert to string and check if empty
     const timeDelayStr = String(timeDelayValue).trim();
-    if (timeDelayStr === '') {
+    if (timeDelayStr === "") {
       console.log("TimeDelay is empty string - NOT counting");
       return false;
     }
@@ -368,7 +410,7 @@ const parseDate = (dateStr: string): Date | null => {
       qc: 0,
       materialUnloading: 0,
       submitBill: 0,
-      billEntryERP: 0
+      billEntryERP: 0,
     };
 
     dataSet.forEach((row, index) => {
@@ -427,94 +469,102 @@ const parseDate = (dateStr: string): Date | null => {
     console.log(delays);
 
     return [
-      { name: 'Issue PO', value: delays.issuePO, color: '#3b82f6' },
-      { name: 'Follow Up', value: delays.followUp, color: '#10b981' },
-      { name: 'Gate Entry', value: delays.gateEntry, color: '#8b5cf6' },
-      { name: 'Weighment', value: delays.weighment, color: '#f59e0b' },
-      { name: 'QC', value: delays.qc, color: '#6366f1' },
-      { name: 'Material Unloading', value: delays.materialUnloading, color: '#06b6d4' },
-      { name: 'Submit Bill', value: delays.submitBill, color: '#ef4444' },
-      { name: 'Bill Entry ERP', value: delays.billEntryERP, color: '#ec4899' }
+      { name: "Issue PO", value: delays.issuePO, color: "#3b82f6" },
+      { name: "Follow Up", value: delays.followUp, color: "#10b981" },
+      { name: "Gate Entry", value: delays.gateEntry, color: "#8b5cf6" },
+      { name: "Weighment", value: delays.weighment, color: "#f59e0b" },
+      { name: "QC", value: delays.qc, color: "#6366f1" },
+      {
+        name: "Material Unloading",
+        value: delays.materialUnloading,
+        color: "#06b6d4",
+      },
+      { name: "Submit Bill", value: delays.submitBill, color: "#ef4444" },
+      { name: "Bill Entry ERP", value: delays.billEntryERP, color: "#ec4899" },
     ];
   };
 
   // Filter data based on selected filter
- // Filter data based on selected filter
-useEffect(() => {
-  if (data.length === 0) return;
+  // Filter data based on selected filter
+  useEffect(() => {
+    if (data.length === 0) return;
 
-  console.log("\n=== Applying Filter ===");
-  console.log("Filter Type:", filterType);
+    console.log("\n=== Applying Filter ===");
+    console.log("Filter Type:", filterType);
 
-  let filtered = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    let filtered = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  if (filterType === 'today') {
-    filtered = data.filter(row => {
-      const planned = row.planned1;
-      if (!planned) return false;
+    if (filterType === "today") {
+      filtered = data.filter((row) => {
+        const planned = row.planned1;
+        if (!planned) return false;
 
-      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
-      if (!rowDate) return false;
-      rowDate.setHours(0, 0, 0, 0);
+        const rowDate = parseDate(planned); // ✅ CHANGE: Use parseDate
+        if (!rowDate) return false;
+        rowDate.setHours(0, 0, 0, 0);
 
-      return rowDate.getTime() === today.getTime();
-    });
-  } else if (filterType === 'last7days') {
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return rowDate.getTime() === today.getTime();
+      });
+    } else if (filterType === "last7days") {
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    filtered = data.filter(row => {
-      const planned = row.planned1;
-      if (!planned) return false;
+      filtered = data.filter((row) => {
+        const planned = row.planned1;
+        if (!planned) return false;
 
-      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
-      if (!rowDate) return false;
-      rowDate.setHours(0, 0, 0, 0);
+        const rowDate = parseDate(planned); // ✅ CHANGE: Use parseDate
+        if (!rowDate) return false;
+        rowDate.setHours(0, 0, 0, 0);
 
-      return rowDate >= sevenDaysAgo && rowDate <= today;
-    });
-  } else if (filterType === 'month' && selectedMonth) {
-    filtered = data.filter(row => {
-      const planned = row.planned1;
-      if (!planned) return false;
+        return rowDate >= sevenDaysAgo && rowDate <= today;
+      });
+    } else if (filterType === "month" && selectedMonth) {
+      filtered = data.filter((row) => {
+        const planned = row.planned1;
+        if (!planned) return false;
 
-      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
-      if (!rowDate) return false;
-      const monthYear = `${rowDate.getFullYear()}-${String(rowDate.getMonth() + 1).padStart(2, '0')}`;
+        const rowDate = parseDate(planned); // ✅ CHANGE: Use parseDate
+        if (!rowDate) return false;
+        const monthYear = `${rowDate.getFullYear()}-${String(
+          rowDate.getMonth() + 1
+        ).padStart(2, "0")}`;
 
-      return monthYear === selectedMonth;
-    });
-  } else if (filterType === 'sixmonth' && selectedSixMonth) {
-    const [startMonth, endMonth] = selectedSixMonth.split('_');
+        return monthYear === selectedMonth;
+      });
+    } else if (filterType === "sixmonth" && selectedSixMonth) {
+      const [startMonth, endMonth] = selectedSixMonth.split("_");
 
-    filtered = data.filter(row => {
-      const planned = row.planned1;
-      if (!planned) return false;
+      filtered = data.filter((row) => {
+        const planned = row.planned1;
+        if (!planned) return false;
 
-      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
-      if (!rowDate) return false;
-      const monthYear = `${rowDate.getFullYear()}-${String(rowDate.getMonth() + 1).padStart(2, '0')}`;
+        const rowDate = parseDate(planned); // ✅ CHANGE: Use parseDate
+        if (!rowDate) return false;
+        const monthYear = `${rowDate.getFullYear()}-${String(
+          rowDate.getMonth() + 1
+        ).padStart(2, "0")}`;
 
-      return monthYear >= startMonth && monthYear <= endMonth;
-    });
-  } else if (filterType === 'year' && selectedYear) {
-    filtered = data.filter(row => {
-      const planned = row.planned1;
-      if (!planned) return false;
+        return monthYear >= startMonth && monthYear <= endMonth;
+      });
+    } else if (filterType === "year" && selectedYear) {
+      filtered = data.filter((row) => {
+        const planned = row.planned1;
+        if (!planned) return false;
 
-      const rowDate = parseDate(planned);  // ✅ CHANGE: Use parseDate
-      if (!rowDate) return false;
-      return rowDate.getFullYear().toString() === selectedYear;
-    });
-  } else {
-    filtered = data;
-  }
+        const rowDate = parseDate(planned); // ✅ CHANGE: Use parseDate
+        if (!rowDate) return false;
+        return rowDate.getFullYear().toString() === selectedYear;
+      });
+    } else {
+      filtered = data;
+    }
 
-  console.log("Filtered data length:", filtered.length);
-  setFilteredData(calculateDelays(filtered));
-}, [data, filterType, selectedMonth, selectedSixMonth, selectedYear]);
+    console.log("Filtered data length:", filtered.length);
+    setFilteredData(calculateDelays(filtered));
+  }, [data, filterType, selectedMonth, selectedSixMonth, selectedYear]);
 
   // Generate month options (last 12 months)
   const getMonthOptions = (): { value: string; label: string }[] => {
@@ -523,9 +573,12 @@ useEffect(() => {
 
     for (let i = 0; i < 12; i++) {
       const monthIndex = i;
-      const value = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+      const value = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
       const date = new Date(year, monthIndex, 1);
-      const label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const label = date.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
       months.push({ value, label });
     }
     return months;
@@ -536,7 +589,7 @@ useEffect(() => {
     const year = filterYear || new Date().getFullYear().toString();
     const options = [
       { value: `${year}-01_${year}-06`, label: `Jan-Jun ${year}` },
-      { value: `${year}-07_${year}-12`, label: `Jul-Dec ${year}` }
+      { value: `${year}-07_${year}-12`, label: `Jul-Dec ${year}` },
     ];
     return options;
   };
@@ -554,183 +607,268 @@ useEffect(() => {
     return years;
   };
 
-
-
   return (
-    <div className=" bg-gray-50 p-4">
+    <div className=" p-0">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-blue-600 mb-4 md:mb-6 flex items-center gap-2">
+        <div className="bg-white rounded-lg  p-0 md:p-4 mb-4">
+          {/* <h1 className="text-xl md:text-2xl font-bold text-blue-600 mb-4 md:mb-6 flex items-center gap-2">
             <BarChart3 className="w-5 h-5 md:w-6 md:h-6" />
             Delay Analysis Dashboard
-          </h1>
+          </h1> */}
 
           {/* Filter Buttons - 2 filters per row on mobile */}
-   <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
-  {/* Today Button */}
+          {/* <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
+            
+            <button
+              onClick={() => {
+                setFilterType("today");
+                setShowMonthDropdown(false);
+                setShowSixMonthDropdown(false);
+                setShowYearDropdown(false);
+              }}
+              className={`px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors text-center ${
+                filterType === "today"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Today
+            </button>
+
+            
+            <button
+              onClick={() => {
+                setFilterType("last7days");
+                setShowMonthDropdown(false);
+                setShowSixMonthDropdown(false);
+                setShowYearDropdown(false);
+              }}
+              className={`px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors text-center ${
+                filterType === "last7days"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Last 7 Days
+            </button>
+
+            
+            <div className="relative min-w-[100px]">
+              <button
+                onClick={() => {
+                  setShowMonthDropdown(!showMonthDropdown);
+                  setShowSixMonthDropdown(false);
+                  setShowYearDropdown(false);
+                }}
+                className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
+                  filterType === "month"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <span className="truncate">
+                  {filterType === "month" && selectedMonth
+                    ? getMonthOptions().find(
+                        (opt) => opt.value === selectedMonth
+                      )?.label || "Month"
+                    : "Month"}
+                </span>
+                <ChevronDown size={14} className="flex-shrink-0" />
+              </button>
+
+              {showMonthDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto min-w-[140px]">
+                  {getMonthOptions().map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setFilterType("month");
+                        setSelectedMonth(option.value);
+                        setShowMonthDropdown(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            
+            <div className="relative min-w-[120px]">
+              <button
+                onClick={() => {
+                  setShowSixMonthDropdown(!showSixMonthDropdown);
+                  setShowMonthDropdown(false);
+                  setShowYearDropdown(false);
+                }}
+                className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
+                  filterType === "sixmonth"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <span className="truncate">
+                  {filterType === "sixmonth" && selectedSixMonth
+                    ? getSixMonthOptions().find(
+                        (opt) => opt.value === selectedSixMonth
+                      )?.label || "6 Months"
+                    : "6 Months"}
+                </span>
+                <ChevronDown size={14} className="flex-shrink-0" />
+              </button>
+
+              {showSixMonthDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
+                  {getSixMonthOptions().map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setFilterType("sixmonth");
+                        setSelectedSixMonth(option.value);
+                        setShowSixMonthDropdown(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            
+            <div className="relative min-w-[100px]">
+              <button
+                onClick={() => {
+                  setShowYearDropdown(!showYearDropdown);
+                  setShowMonthDropdown(false);
+                  setShowSixMonthDropdown(false);
+                }}
+                className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
+                  filterType === "year"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <span className="truncate">
+                  {filterType === "year" && selectedYear
+                    ? getYearOptions().find((opt) => opt.value === selectedYear)
+                        ?.label || "Year"
+                    : "Year"}
+                </span>
+                <ChevronDown size={14} className="flex-shrink-0" />
+              </button>
+
+              {showYearDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                  {getYearOptions().map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setFilterType("year");
+                        setSelectedYear(option.value);
+                        setFilterYear(option.value);
+                        setShowYearDropdown(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div> */}
+
+
+
+          <div className="flex items-center gap-2 mb-2 overflow-x-auto whitespace-nowrap">
+  
   <button
-    onClick={() => {
-      setFilterType('today');
-      setShowMonthDropdown(false);
-      setShowSixMonthDropdown(false);
-      setShowYearDropdown(false);
-    }}
-    className={`px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors text-center ${
+    onClick={() => setFilterType('today')}
+    className={`px-2 py-1 text-xs rounded ${
       filterType === 'today'
         ? 'bg-blue-600 text-white'
-        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        : 'bg-gray-100 text-gray-600'
     }`}
   >
     Today
   </button>
 
-  {/* Last 7 Days Button */}
   <button
-    onClick={() => {
-      setFilterType('last7days');
-      setShowMonthDropdown(false);
-      setShowSixMonthDropdown(false);
-      setShowYearDropdown(false);
-    }}
-    className={`px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors text-center ${
+    onClick={() => setFilterType('last7days')}
+    className={`px-2 py-1 text-xs rounded ${
       filterType === 'last7days'
         ? 'bg-blue-600 text-white'
-        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        : 'bg-gray-100 text-gray-600'
     }`}
   >
-    Last 7 Days
+    7 Days
   </button>
 
-  {/* Month Dropdown */}
-  <div className="relative min-w-[100px]">
-    <button
-      onClick={() => {
-        setShowMonthDropdown(!showMonthDropdown);
-        setShowSixMonthDropdown(false);
-        setShowYearDropdown(false);
-      }}
-      className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
-        filterType === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-      }`}
-    >
-      <span className="truncate">
-        {filterType === 'month' && selectedMonth 
-          ? getMonthOptions().find(opt => opt.value === selectedMonth)?.label || 'Month'
-          : 'Month'
-        }
-      </span>
-      <ChevronDown size={14} className="flex-shrink-0" />
-    </button>
+  {/* Month */}
+  <select
+  className="px-2 py-1 text-xs bg-gray-100 rounded w-auto"
+  value={selectedMonth}
+  onChange={(e) => {
+    setFilterType('month');
+    setSelectedMonth(e.target.value);
+  }}
+>
+  <option value="">Month</option>
+  {getMonthOptions().map(m => (
+    <option key={m.value} value={m.value}>{m.label}</option>
+  ))}
+</select>
 
-    {showMonthDropdown && (
-      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto min-w-[140px]">
-        {getMonthOptions().map(option => (
-          <button
-            key={option.value}
-            onClick={() => {
-              setFilterType('month');
-              setSelectedMonth(option.value);
-              setShowMonthDropdown(false);
-            }}
-            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
+  {/* 6 Months */}
+  <select
+    className="px-2 py-1 text-xs bg-gray-100 rounded"
+    value={selectedSixMonth}
+    onChange={(e) => {
+      setFilterType('sixmonth');
+      setSelectedSixMonth(e.target.value);
+    }}
+  >
+    <option value="">6 Months</option>
+    {getSixMonthOptions().map(m => (
+      <option key={m.value} value={m.value}>{m.label}</option>
+    ))}
+  </select>
 
-  {/* 6 Months Dropdown */}
-  <div className="relative min-w-[120px]">
-    <button
-      onClick={() => {
-        setShowSixMonthDropdown(!showSixMonthDropdown);
-        setShowMonthDropdown(false);
-        setShowYearDropdown(false);
-      }}
-      className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
-        filterType === 'sixmonth' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-      }`}
-    >
-      <span className="truncate">
-        {filterType === 'sixmonth' && selectedSixMonth 
-          ? getSixMonthOptions().find(opt => opt.value === selectedSixMonth)?.label || '6 Months'
-          : '6 Months'
-        }
-      </span>
-      <ChevronDown size={14} className="flex-shrink-0" />
-    </button>
-
-    {showSixMonthDropdown && (
-      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
-        {getSixMonthOptions().map(option => (
-          <button
-            key={option.value}
-            onClick={() => {
-              setFilterType('sixmonth');
-              setSelectedSixMonth(option.value);
-              setShowSixMonthDropdown(false);
-            }}
-            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
-
-  {/* Year Dropdown */}
-  <div className="relative min-w-[100px]">
-    <button
-      onClick={() => {
-        setShowYearDropdown(!showYearDropdown);
-        setShowMonthDropdown(false);
-        setShowSixMonthDropdown(false);
-      }}
-      className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
-        filterType === 'year' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-      }`}
-    >
-      <span className="truncate">
-        {filterType === 'year' && selectedYear 
-          ? getYearOptions().find(opt => opt.value === selectedYear)?.label || 'Year'
-          : 'Year'
-        }
-      </span>
-      <ChevronDown size={14} className="flex-shrink-0" />
-    </button>
-
-    {showYearDropdown && (
-      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
-        {getYearOptions().map(option => (
-          <button
-            key={option.value}
-            onClick={() => {
-              setFilterType('year');
-              setSelectedYear(option.value);
-              setFilterYear(option.value);
-              setShowYearDropdown(false);
-            }}
-            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
+  {/* Year */}
+  <select
+    className="px-2 py-1 text-xs bg-gray-100 rounded"
+    value={selectedYear}
+    onChange={(e) => {
+      setFilterType('year');
+      setSelectedYear(e.target.value);
+    }}
+  >
+    <option value="">Year</option>
+    {getYearOptions().map(y => (
+      <option key={y.value} value={y.value}>{y.label}</option>
+    ))}
+  </select>
 </div>
 
-          {/* Current Filter Display */}
+
+          
           <div className="mb-4 text-sm text-gray-600 text-center md:text-left">
-            Current Filter: <span className="font-semibold">
-              {filterType === 'today' && 'Today'}
-              {filterType === 'last7days' && 'Last 7 Days'}
-              {filterType === 'month' && selectedMonth && getMonthOptions().find(m => m.value === selectedMonth)?.label}
-              {filterType === 'sixmonth' && selectedSixMonth && getSixMonthOptions().find(s => s.value === selectedSixMonth)?.label}
-              {filterType === 'year' && selectedYear}
+            Current Filter:{" "}
+            <span className="font-semibold">
+              {filterType === "today" && "Today"}
+              {filterType === "last7days" && "Last 7 Days"}
+              {filterType === "month" &&
+                selectedMonth &&
+                getMonthOptions().find((m) => m.value === selectedMonth)?.label}
+              {filterType === "sixmonth" &&
+                selectedSixMonth &&
+                getSixMonthOptions().find((s) => s.value === selectedSixMonth)
+                  ?.label}
+              {filterType === "year" && selectedYear}
             </span>
           </div>
 
@@ -740,44 +878,73 @@ useEffect(() => {
               <div className="text-gray-500">Loading data...</div>
             </div>
           ) : (
-            <div className="h-80 md:h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={filteredData}
-                  margin={{ top: 20, right: 30, left: 0, bottom: 40 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis
-                    dataKey="name"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    interval={0}
-                    fontSize={12}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                      fontSize: '12px'
-                    }}
-                    formatter={(value) => [value, 'Delay Count']}
-                  />
-                  <Bar
-                    dataKey="value"
-                    radius={[4, 4, 0, 0]}
-                    animationDuration={1000}
-                  >
-                    {filteredData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            // <div className="h-80 md:h-96">
+            //   <ResponsiveContainer width="100%" height="100%">
+            //     <BarChart
+            //       data={filteredData}
+            //       margin={{ top: 20, right: 30, left: 0, bottom: 40 }}
+            //     >
+            //       <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+            //       <XAxis
+            //         dataKey="name"
+            //         angle={-45}
+            //         textAnchor="end"
+            //         height={80}
+            //         interval={0}
+            //         fontSize={12}
+            //         tick={{ fontSize: 12 }}
+            //       />
+            //       <YAxis fontSize={12} />
+            //       <Tooltip
+            //         contentStyle={{
+            //           backgroundColor: "white",
+            //           border: "1px solid #e5e7eb",
+            //           borderRadius: "6px",
+            //           fontSize: "12px",
+            //         }}
+            //         formatter={(value) => [value, "Delay Count"]}
+            //       />
+            //       <Bar
+            //         dataKey="value"
+            //         radius={[4, 4, 0, 0]}
+            //         animationDuration={1000}
+            //       >
+            //         {filteredData.map((entry, index) => (
+            //           <Cell key={`cell-${index}`} fill={entry.color} />
+            //         ))}
+            //       </Bar>
+            //     </BarChart>
+            //   </ResponsiveContainer>
+            // </div>
+
+
+            <div className="h-40">
+  <ResponsiveContainer width="100%" height="100%">
+    <BarChart
+      data={filteredData}
+      margin={{ top: 10, right: 0, left: 0, bottom: 40 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis
+        dataKey="name"
+        angle={-35}
+        textAnchor="end"
+        fontSize={10}
+        height={60}
+        interval={0}
+        
+      />
+      <YAxis fontSize={10} />
+      <Tooltip />
+      <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+        {filteredData.map((e, i) => (
+          <Cell key={i} fill={e.color} />
+        ))}
+      </Bar>
+    </BarChart>
+  </ResponsiveContainer>
+</div>
+
           )}
         </div>
       </div>
