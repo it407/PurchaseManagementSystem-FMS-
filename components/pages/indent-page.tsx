@@ -990,9 +990,9 @@ export function IndentPage() {
                       ? parseFloat(quantityMatch[1])
                       : 0;
 
-                    const rateValue = parseFloat(selected.rate) || 0;
+                    const rateValue = (selected.rate) || 0;
 
-                    return (quantityValue * rateValue).toFixed(2);
+                    return (quantityValue * rateValue);
                   })()}
                 </p>
               </div>

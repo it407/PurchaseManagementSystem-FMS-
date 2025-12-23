@@ -116,10 +116,14 @@ const DelayAnalysis = () => {
 
         // FMS sheet has headers in row 5 (index 5), data starts from row 6
         if (result.data.length > 5) {
-          const headers = result.data[5]; // Row 5 has actual headers
+          // const headers = result.data[5]; // Row 5 has actual headers
+          const headers = result.data[5] as string[];
+
           console.log("Headers from API (Row 5):", headers);
 
-          const rows = result.data.slice(6); // Data starts from row 6
+          // const rows = result.data.slice(6); // Data starts from row 6
+          const rows = result.data.slice(6) as any[];
+
           console.log("Data rows count:", rows.length);
 
           // Find column indices for our needed columns
@@ -143,7 +147,10 @@ const DelayAnalysis = () => {
           };
 
           // Find all "Time Delay" columns manually (there are multiple)
-          let timeDelayIndices = [];
+          // let timeDelayIndices = [];
+          let timeDelayIndices: number[] = [];
+          
+
           headers.forEach((header, idx) => {
             if (header === "Time Delay" || header === "time delay") {
               timeDelayIndices.push(idx);
