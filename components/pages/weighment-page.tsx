@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect ,useRef} from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +83,11 @@ export function WeighmentPage() {
     verifiedBy: "",
     attachment: null as File | null,
   });
+
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+const pasteBoxRef = useRef<HTMLDivElement>(null);
+
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -764,7 +769,7 @@ const filteredHistory = filterRecords(history);
           </div>
 
           {/* Attachment File Field */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Attachment File
             </label>
@@ -798,7 +803,93 @@ const filteredHistory = filterRecords(history);
             <p className="text-xs text-gray-500 mt-1">
               Supported: Images, PDF, Word documents
             </p>
-          </div>
+          </div> */}
+
+
+
+          <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Attachment File
+  </label>
+
+  <div className="flex items-center gap-2">
+    {/* Paste / Click area */}
+    <div
+      ref={pasteBoxRef}
+      tabIndex={0}
+      onClick={() => pasteBoxRef.current?.focus()} // Single click → focus for paste
+      onDoubleClick={() => fileInputRef.current?.click()} // Double click → open file picker
+      onPaste={(e) => {
+        e.preventDefault();
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.includes("image")) {
+            const file = items[i].getAsFile();
+            if (file) setFormData({ ...formData, attachment: file });
+          }
+        }
+      }}
+      className="flex-1 cursor-pointer flex items-center justify-center gap-2
+                 border-2 border-dashed border-gray-300 rounded-md p-3
+                 hover:border-blue-500 transition-colors focus:outline-none"
+    >
+      <Upload className="w-4 h-4 text-gray-500" />
+
+      <span className="text-sm text-gray-600 text-center">
+        {formData.attachment
+          ? formData.attachment.name
+          : "Single click → Paste screenshot | Double click → Upload file"}
+      </span>
+
+      {/* hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        hidden
+        accept="image/*,.pdf,.doc,.docx"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) setFormData({ ...formData, attachment: file });
+          e.target.value = ""; // Reset to allow re-selecting same file
+        }}
+      />
+    </div>
+
+    {/* Attachment Preview + Remove */}
+    {formData.attachment && (
+      <div className="relative flex items-center gap-2">
+        {/* Remove button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setFormData({ ...formData, attachment: null });
+          }}
+          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
+        >
+          ✕
+        </button>
+
+        {/* Preview */}
+        {formData.attachment.type.startsWith("image/") ? (
+          <img
+            src={URL.createObjectURL(formData.attachment)}
+            className="h-12 w-12 rounded object-cover"
+            alt="Preview"
+          />
+        ) : (
+          <span className="text-xs text-gray-700">
+            {formData.attachment.name}
+          </span>
+        )}
+      </div>
+    )}
+  </div>
+
+  <p className="text-xs text-gray-500 mt-1">
+    Single click → Paste screenshot | Double click → Upload file
+  </p>
+</div>
+
 
           {/* Live Net Weight Preview */}
           {formData.grossWeight && formData.tareWeight && (
