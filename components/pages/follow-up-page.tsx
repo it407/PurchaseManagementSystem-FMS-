@@ -10,6 +10,10 @@ import { Eye, MessageSquare } from "lucide-react";
 import { useProcurement } from "@/contexts/procurement-context";
 import { useEffect } from "react"; // Add this import with other imports
 
+
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
+
 // Fixed LabeledInput
 function LabeledInput({
   label,
@@ -92,70 +96,7 @@ export function FollowUpPage() {
     setIsEditModalOpen(true);
   };
 
-  // Add this function to handle the edit submission
-  // const handleEditSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (recordToEdit) {
-  //     try {
-  //       setSubmitLoading(true);
-
-  //       // Format date to dd/mm/yyyy
-  //       const formatDateToDDMMYYYY = (dateString: string) => {
-  //         const date = new Date(dateString);
-  //         const day = String(date.getDate()).padStart(2, "0");
-  //         const month = String(date.getMonth() + 1).padStart(2, "0");
-  //         const year = date.getFullYear();
-  //         return `${day}/${month}/${year}`;
-  //       };
-
-  //       const formattedExpectedDate = new Date(
-  //         formData.expectedDelivery
-  //       ).toLocaleString("en-US", {
-  //         year: "numeric",
-  //         month: "2-digit",
-  //         day: "2-digit",
-  //         hour: "2-digit",
-  //         minute: "2-digit",
-  //         second: "2-digit",
-  //         hour12: true,
-  //       });
-
-  //       const updatePayload = {
-  //         action: "update",
-  //         sheetId: "1MtxLluyxLJwDV_2fxw4qG0wUOBE4Ys8Wd_ewLeP9czA",
-  //         sheetName: "FMS",
-  //         rowIndex: recordToEdit.rowIndex,
-  //         columnData: {
-  //           S: formattedExpectedDate, // Expected Date - formatted as dd/mm/yyyy
-  //         },
-  //       };
-
-  //       await fetch(
-  //         "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec",
-  //         {
-  //           method: "POST",
-  //           mode: "no-cors",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //           },
-  //           body: JSON.stringify(updatePayload),
-  //         }
-  //       );
-
-  //       // Refresh data after a short delay
-  //       setTimeout(async () => {
-  //         await fetchFollowUpData();
-  //         setIsEditModalOpen(false);
-  //         setRecordToEdit(null);
-  //         setSubmitLoading(false);
-  //       }, 1500);
-  //     } catch (error) {
-  //       console.error("Error updating expected delivery:", error);
-  //       alert("Error updating expected delivery. Please try again.");
-  //       setSubmitLoading(false);
-  //     }
-  //   }
-  // };
+  
 
   // Replace the existing handleEditSubmit function with this updated version
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -182,9 +123,14 @@ export function FollowUpPage() {
           return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
         };
 
-        const formattedExpectedDate = formatTimestamp(
-          editFormData.expectedDelivery
-        );
+        // const formattedExpectedDate = formatTimestamp(
+        //   editFormData.expectedDelivery
+        // );
+
+        const formattedExpectedDate = formatDateWithCurrentTime(
+  editFormData.expectedDelivery
+);
+
 
         const updatePayload = {
           action: "update",
@@ -281,7 +227,11 @@ export function FollowUpPage() {
           });
         };
 
-        const formattedExpectedDate = formatDate(formData.expectedDelivery);
+        // const formattedExpectedDate = formatDate(formData.expectedDelivery);
+        const formattedExpectedDate = formatDateWithCurrentTime(
+  formData.expectedDelivery
+);
+
         const formattedCurrentDate = formatDate(currentDate);
 
         const updatePayload = {
@@ -608,6 +558,33 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
     return dateString;
   }
 };
+
+
+
+const formatDateWithCurrentTime = (dateString: string) => {
+  const selectedDate = new Date(dateString); // user-selected date
+  const now = new Date(); // current time
+
+  selectedDate.setHours(
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds()
+  );
+
+  let month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+  let day = String(selectedDate.getDate()).padStart(2, "0");
+  let year = selectedDate.getFullYear();
+
+  let hours = selectedDate.getHours();
+  const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
+  const seconds = String(selectedDate.getSeconds()).padStart(2, "0");
+
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+
+  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
 
   return (
     <div className="space-y-6 p-4 md:p-0">
@@ -981,7 +958,7 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
             onChange={() => {}}
             disabled
           />
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Expected Delivery Date & Time
             </label>
@@ -994,7 +971,26 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
-          </div>
+          </div> */}
+
+          <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Expected Delivery Date
+  </label>
+  <input
+    type="date"
+    value={editFormData.expectedDelivery}
+    onChange={(e) =>
+      setEditFormData({
+        ...editFormData,
+        expectedDelivery: e.target.value,
+      })
+    }
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    required
+  />
+</div>
+
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1123,7 +1119,7 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
             onChange={() => {}}
             disabled
           />
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Expected Delivery Date & Time
             </label>
@@ -1139,7 +1135,26 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
-          </div>
+          </div> */}
+
+          <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Expected Delivery Date
+  </label>
+  <input
+    type="date"
+    value={editFormData.expectedDelivery}
+    onChange={(e) =>
+      setEditFormData({
+        ...editFormData,
+        expectedDelivery: e.target.value,
+      })
+    }
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    required
+  />
+</div>
+
           <div className="flex flex-col gap-3 sm:flex-row pt-2">
             <Button
               type="submit"
