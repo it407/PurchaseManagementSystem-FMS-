@@ -654,7 +654,15 @@ export function IndentPage() {
                         {i.deliveryDate}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium
+      ${
+        i.status?.toLowerCase() === "cancel" ||
+        i.status?.toLowerCase() === "cancle"
+          ? "bg-red-100 text-red-800"
+          : "bg-yellow-100 text-yellow-800"
+      }`}
+                        >
                           {i.status}
                         </span>
                       </td>
@@ -990,9 +998,9 @@ export function IndentPage() {
                       ? parseFloat(quantityMatch[1])
                       : 0;
 
-                    const rateValue = (selected.rate) || 0;
+                    const rateValue = selected.rate || 0;
 
-                    return (quantityValue * rateValue);
+                    return quantityValue * rateValue;
                   })()}
                 </p>
               </div>
