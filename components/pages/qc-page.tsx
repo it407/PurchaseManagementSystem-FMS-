@@ -475,6 +475,9 @@ export function QCPage() {
                         PO No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supplier Name
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Material
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -513,6 +516,9 @@ export function QCPage() {
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
                           {record.poNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.supplierName}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {record.materialName}
@@ -603,6 +609,9 @@ export function QCPage() {
                         PO No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supplier Name
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Material
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -633,6 +642,9 @@ export function QCPage() {
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {record.poNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.supplierName}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {record.materialName}
@@ -733,6 +745,12 @@ export function QCPage() {
           <LabeledInput
             label="PO No."
             value={selectedRecord?.poNo || ""}
+            onChange={() => {}}
+            disabled
+          />
+          <LabeledInput
+            label="PO No."
+            value={selectedRecord?.supplierName || ""}
             onChange={() => {}}
             disabled
           />

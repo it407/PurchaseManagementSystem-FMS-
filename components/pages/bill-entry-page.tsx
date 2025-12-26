@@ -439,11 +439,15 @@ const filteredHistory = filterRecords(history);
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Product No.
                       </th>
+                      
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Bill No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         PO No.
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supplier Name
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Amount
@@ -476,6 +480,7 @@ const filteredHistory = filterRecords(history);
                           {record.billNo || "—"}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.poNo}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-green-700">
                           ₹{record.amount?.toLocaleString("en-IN") || "—"}
                         </td>
@@ -575,6 +580,9 @@ const filteredHistory = filterRecords(history);
                         PO No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supplier Name
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Amount
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -592,6 +600,7 @@ const filteredHistory = filterRecords(history);
                           {record.billNo}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.poNo}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-green-700">
                           ₹{record.amount.toLocaleString("en-IN")}
                         </td>
@@ -669,6 +678,7 @@ const filteredHistory = filterRecords(history);
           />
           <LabeledInput label="Bill No." value={formData.billNo} onChange={() => { }} disabled />
           <LabeledInput label="PO No." value={selectedRecord?.poNo || ""} onChange={() => { }} disabled />
+          <LabeledInput label="Supplier Name" value={selectedRecord?.supplierName || ""} onChange={() => { }} disabled />
           <LabeledInput
             label="Amount (₹)"
             value={formData.amount}

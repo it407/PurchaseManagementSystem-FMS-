@@ -730,7 +730,7 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                         PO No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Supplier
+                        Supplier Name
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Material
@@ -877,7 +877,7 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                         PO No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Supplier
+                        Supplier Name
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Material
@@ -930,7 +930,7 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                           {record.remark}
                         </td>
 
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 whitespace-nowrap ">
                           <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
                             {record.status}
                           </span>
@@ -1013,6 +1013,12 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
           <LabeledInput
             label="PO No."
             value={selectedRecord?.poNo || ""}
+            onChange={() => {}}
+            disabled
+          />
+          <LabeledInput
+            label="Supplier Name"
+            value={selectedRecord?.supplierName || ""}
             onChange={() => {}}
             disabled
           />
@@ -1149,6 +1155,12 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
           <LabeledInput
             label="PO No."
             value={recordToEdit?.poNo || ""}
+            onChange={() => {}}
+            disabled
+          />
+          <LabeledInput
+            label="Supplier Name"
+            value={selectedRecord?.supplierName || ""}
             onChange={() => {}}
             disabled
           />

@@ -140,7 +140,7 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
               poNo: row[5] || `PO-${i + 1}`,
-              supplierName: row[2] || "Supplier",
+              supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
               quantity: row[5] || "0",
               planned2: planned2,
@@ -511,7 +511,7 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                         PO No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Supplier
+                        Supplier Name
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Material
@@ -644,6 +644,9 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                         PO No.
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supplier Name
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Material
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -666,6 +669,7 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.poNo}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.materialName}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.vehicleNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.driverName}</td>
@@ -767,7 +771,20 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         className="max-w-lg w-full mx-4 sm:mx-auto"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <LabeledInput label="PO No." value={selectedRecord?.poNo || ""} onChange={() => { }} disabled />
+
+          <LabeledInput 
+          label="PO No." 
+          value={selectedRecord?.poNo || ""} 
+          onChange={() => { }} 
+          disabled 
+          />
+          <LabeledInput 
+          label="Supplier Name" 
+          value={selectedRecord?.supplierName || ""} 
+          onChange={() => { }} 
+          disabled 
+          />
+
           <LabeledInput
             label="Vehicle No."
             placeholder="e.g. MH-04-AB-1234"

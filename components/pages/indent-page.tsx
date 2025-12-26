@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/modal";
-import { Eye, Plus } from "lucide-react";
+import { Eye, Plus, Check, X } from "lucide-react"; // यहाँ Check और X जोड़ें
 import { useProcurement } from "@/contexts/procurement-context";
 import { useEffect } from "react"; // Add this import
 
@@ -65,6 +65,15 @@ export function IndentPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selected, setSelected] = useState<(typeof indents)[0] | null>(null);
   const [loading, setLoading] = useState(false);
+
+
+  const [selectedIndents, setSelectedIndents] = useState<Set<string>>(new Set());
+  const [editForm, setEditForm] = useState<Record<string, {
+    materialName: string;
+    quantity: string;
+    rate: string;
+  }>>({});
+
 
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [cancelForm, setCancelForm] = useState<CancelForm>({
@@ -540,7 +549,117 @@ export function IndentPage() {
     setIsViewOpen(true);
   };
 
-  // const displayedIndents = indents || [];
+  // Checkbox change handler
+  const handleCheckboxChange = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIndents);
+    if (checked) {
+      newSelected.add(id);
+
+      // Automatically initialize edit form for this item
+      const indent = filteredIndents.find(i => i.id === id);
+      if (indent && !editForm[id]) {
+        setEditForm(prev => ({
+          ...prev,
+          [id]: {
+            materialName: indent.materialName || '',
+            quantity: indent.quantity || '',
+            rate: indent.rate ? String(indent.rate) : '',
+          }
+        }));
+      }
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedIndents(newSelected);
+  };
+
+  // Edit form change handler
+  const handleEditChange = (id: string, field: 'materialName' | 'quantity' | 'rate', value: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value,
+      }
+    }));
+  };
+
+  // Save edits function
+  // Save edits function
+  const handleSaveEdits = async () => {
+    if (selectedIndents.size === 0) {
+      alert("Please select at least one indent to edit.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Prepare changes data
+      const changes = Array.from(selectedIndents).map(id => {
+        const indent = filteredIndents.find(i => i.id === id);
+        if (!indent) return null;
+
+        return {
+          indentNumber: indent.indentNumber || '',
+          productNumber: indent.productNumber || '',
+          updated: {
+            materialName: editForm[id]?.materialName || '',
+            quantity: editForm[id]?.quantity || '',
+            rate: editForm[id]?.rate || ''
+          }
+        };
+      }).filter(change => change !== null);
+
+      console.log("Saving edits to Google Sheets:", changes);
+
+      // IMPORTANT: Use the correct format that doPost expects
+      const payload = {
+        action: "updateIndentData",
+        changes: changes
+      };
+
+      console.log("Payload:", payload);
+
+      // Call Google Apps Script API with correct format
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec",
+
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          // यह format use करें जो doPost function में handle किया गया है
+          body: `data=${encodeURIComponent(JSON.stringify(payload))}`,
+        }
+      );
+
+      const result = await response.json();
+      console.log("Update response:", result);
+
+      if (result.success) {
+        alert(`Successfully updated ${result.updatedCount} record(s)`);
+
+        // Reset selection
+        setSelectedIndents(new Set());
+        setEditForm({});
+
+        // Refresh data
+        await fetchIndentsFromSheet();
+      } else {
+        console.error("Failed to update indent:", result);
+        alert("Failed to save changes: " + (result.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error saving edits:", error);
+      alert("Error saving edits: " + error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
     <>
@@ -562,14 +681,40 @@ export function IndentPage() {
         </Button>
       </div>
 
-      <div className="mt-4">
-        <Input
-          type="text"
-          placeholder="Search all columns..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:max-w-md"
-        />
+      <div className="mt-4 flex justify-between items-center">
+        <div>
+          <Input
+            type="text"
+            placeholder="Search all columns..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full sm:max-w-md"
+          />
+        </div>
+
+        {/* कोई checkbox select होने पर ही buttons दिखाएं */}
+        {selectedIndents.size > 0 && (
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSaveEdits}
+              className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+            >
+              <Check className="w-4 h-4" />
+              Save Changes ({selectedIndents.size})
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectedIndents(new Set());
+                setEditForm({});
+              }}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Clear Selection
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Table / Cards */}
@@ -587,15 +732,39 @@ export function IndentPage() {
         ) : (
           <>
             {/* Desktop Table */}
-            <div className="hidden sm:block overflow-x-auto">
+            <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
+
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 sticky top-0 z-20">
+
                   <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {/* यहाँ Select All checkbox - हमेशा दिखेगा */}
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedIndents.size === filteredIndents.length && filteredIndents.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              // सभी select करें
+                              const allIds = new Set(filteredIndents.map(i => i.id));
+                              setSelectedIndents(allIds);
+                            } else {
+                              // सभी deselect करें
+                              setSelectedIndents(new Set());
+                              setEditForm({});
+                            }
+                          }}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+
+                      </div>
+                    </th>
                     {[
                       "Action",
                       "Indent No.",
                       "Product No.",
-                      "PO No.", // Add PO No. back
+                      "PO No.",
                       "Supplier",
                       "Material",
                       "Qty",
@@ -618,6 +787,18 @@ export function IndentPage() {
                       key={i.id}
                       className="hover:bg-gray-50 transition-colors"
                     >
+
+                      <td className="px-4 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedIndents.has(i.id)}
+                          onChange={(e) => handleCheckboxChange(i.id, e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </td>
+
+
+
                       <td className="px-4 py-3 text-sm">
                         <div className="flex gap-3">
                           <button
@@ -641,27 +822,60 @@ export function IndentPage() {
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                         {i.supplierName}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                        {i.materialName}
+
+                      {/* MATERIAL COLUMN - Checkbox selected होने पर input show करें */}
+                      <td className="whitespace-nowrap px-4 py-3">
+                        {selectedIndents.has(i.id) ? (
+                          <Input
+                            value={editForm[i.id]?.materialName ?? ''}
+                            onChange={(e) => handleEditChange(i.id, 'materialName', e.target.value)}
+                            className="w-32 text-sm"
+                          />
+
+                        ) : (
+                          <span className="text-sm text-gray-900">{i.materialName}</span>
+                        )}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                        {i.quantity}
+
+                      {/* QUANTITY COLUMN - Checkbox selected होने पर input show करें */}
+                      <td className="whitespace-nowrap px-4 py-3">
+                        {selectedIndents.has(i.id) ? (
+                          <Input
+                            value={editForm[i.id]?.quantity ?? ''}
+                            onChange={(e) => handleEditChange(i.id, 'quantity', e.target.value)}
+                            className="w-24 text-sm"
+                          />
+                        ) : (
+                          <span className="text-sm text-gray-900">{i.quantity}</span>
+                        )}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                        ₹{i.rate}
+
+                      {/* RATE COLUMN - Checkbox selected होने पर input show करें */}
+                      <td className="whitespace-nowrap px-4 py-3">
+                        {selectedIndents.has(i.id) ? (
+                          <div className="flex items-center">
+                            <span className="mr-1">₹</span>
+                            <Input
+                              value={editForm[i.id]?.rate ?? ''}
+                              onChange={(e) => handleEditChange(i.id, 'rate', e.target.value)}
+                              className="w-20 text-sm"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-900">₹{i.rate}</span>
+                        )}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                         {i.deliveryDate}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span
                           className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium
-      ${
-        i.status?.toLowerCase() === "cancel" ||
-        i.status?.toLowerCase() === "cancle"
-          ? "bg-red-100 text-red-800"
-          : "bg-yellow-100 text-yellow-800"
-      }`}
+      ${i.status?.toLowerCase() === "cancel" ||
+                              i.status?.toLowerCase() === "cancle"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
+                            }`}
                         >
                           {i.status}
                         </span>
@@ -673,26 +887,67 @@ export function IndentPage() {
             </div>
 
             {/* Mobile Cards */}
+            {/* Mobile Cards */}
             <div className="sm:hidden space-y-4 p-4">
               {indents.map((i) => (
                 <div
                   key={i.id}
                   className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
                 >
+                  {/* Mobile में checkbox हमेशा दिखेगा */}
+                  <div className="flex items-center mb-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIndents.has(i.id)}
+                      onChange={(e) => handleCheckboxChange(i.id, e.target.checked)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+                    />
+                    <span className="text-sm">Edit this item</span>
+                  </div>
+
+                  {/* Rest of mobile card content */}
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <p className="font-semibold text-gray-900">{i.poNo}</p>
                       <p className="text-sm text-gray-600">{i.supplierName}</p>
-
                       <p className="text-xs text-gray-500">
-                        Indent: {i.indentNumber} | Product: {i.productNumber}{" "}
-                        {/* NEW */}
+                        Indent: {i.indentNumber} | Product: {i.productNumber}
                       </p>
                     </div>
                     <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
                       {i.status}
                     </span>
                   </div>
+
+                  {/* Mobile में edit inputs (selected होने पर) */}
+                  {selectedIndents.has(i.id) && (
+                    <div className="mt-4 space-y-3 p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <label className="text-sm text-gray-700">Material</label>
+                        <Input
+                          value={editForm[i.id]?.materialName || i.materialName}
+                          onChange={(e) => handleEditChange(i.id, 'materialName', e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-700">Quantity</label>
+                        <Input
+                          value={editForm[i.id]?.quantity || i.quantity}
+                          onChange={(e) => handleEditChange(i.id, 'quantity', e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-700">Rate (₹)</label>
+                        <Input
+                          value={editForm[i.id]?.rate || i.rate}
+                          onChange={(e) => handleEditChange(i.id, 'rate', e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>

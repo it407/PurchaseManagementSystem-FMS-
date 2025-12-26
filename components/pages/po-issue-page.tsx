@@ -662,7 +662,7 @@ export function POIssuePage() {
                         <p className="text-sm text-gray-600">
                           {po.supplierName}
                         </p>
-                        </div>
+                      </div>
                     </div>
 
                     <Button
@@ -851,6 +851,12 @@ export function POIssuePage() {
             disabled
           />
           <LabeledInput
+            label="Supplier Name"
+            value={selectedPO?.supplierName || ""}
+            onChange={() => {}}
+            disabled
+          />
+          <LabeledInput
             label="Indent No."
             value={selectedPO?.indentNumber || ""}
             onChange={() => {}}
@@ -871,59 +877,36 @@ export function POIssuePage() {
             }
             required
           />
-          {/* <LabeledInput
-            label="Supplier Contact"
-            placeholder="Phone"
-            value={formData.supplierContact}
-            onChange={(e) =>
-              setFormData({ ...formData, supplierContact: e.target.value })
-            }
-            required
-          /> */}
+        
 
           <LabeledInput
-  label="Supplier Contact"
-  placeholder="Phone Number"
-  type="tel"
-  inputMode="numeric"
-  pattern="[0-9]*"
-  maxLength={10}
-  value={formData.supplierContact}
-  onChange={(e) => {
-    const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
-    setFormData({ ...formData, supplierContact: value });
-  }}
-  required
-/>
+            label="Supplier Contact"
+            placeholder="Phone Number"
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={10}
+            value={formData.supplierContact}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
+              setFormData({ ...formData, supplierContact: value });
+            }}
+            required
+          />
 
-          {/* <div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Mode of Send
             </label>
-            <select
-              value={formData.modeOfSend}
-              onChange={(e) =>
-                setFormData({ ...formData, modeOfSend: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-               <option value="WhatsApp">WhatsApp</option>
-    <option value="Email">Email</option>
-            </select>
-          </div> */}
-          <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Mode of Send
-  </label>
 
-  {/* Read-only display */}
-  <input
-    type="text"
-    value="WhatsApp"
-    disabled
-    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
-  />
-</div>
+            {/* Read-only display */}
+            <input
+              type="text"
+              value="WhatsApp"
+              disabled
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
