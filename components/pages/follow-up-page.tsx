@@ -364,6 +364,7 @@ export function FollowUpPage() {
               materialName: row[4] || "Material",
               quantity: row[6] || 0,
               rate: row[7] || 0,
+              createdBy: row[61] || "",
               deliveryDate: row[8] || "",
               expectedDelivery: row[8] || "", // Column N
               status: "Pending",
@@ -379,6 +380,7 @@ export function FollowUpPage() {
               supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
               quantity: row[6] || 0,
+              createdBy: row[61] || "",
               rate: row[5] || 0,
               deliveryDate: row[8] || "",
               remark: row[19] || "",
@@ -735,6 +737,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Material
                       </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Create User
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -775,6 +780,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {record.materialName}
                         </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.createdBy}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -814,6 +822,10 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                       <div>
                         <p className="text-gray-500">Material</p>
                         <p className="font-medium">{record.materialName}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Create User</p>
+                        <p className="font-medium">{record.createdBy}</p>
                       </div>
                       <div>
                         <p className="text-gray-500">Expected</p>
@@ -888,6 +900,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Remark
                       </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Create User
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
@@ -928,6 +943,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900 break-words text-center">
                           {record.remark}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 break-words text-center">
+                          {record.createdBy}
                         </td>
 
                         <td className="px-4 py-3 whitespace-nowrap ">
@@ -985,6 +1003,10 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                     <div className="text-sm mb-4">
                       <p className="text-gray-500">Remark</p>
                       <p className="font-medium text-xs">{record.remark}</p>
+                    </div>
+                    <div className="text-sm mb-4">
+                      <p className="text-gray-500">Create User</p>
+                      <p className="font-medium text-xs">{record.createdBy}</p>
                     </div>
 
                     <Button

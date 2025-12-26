@@ -10,6 +10,8 @@ import { Eye, Plus, Check, X } from "lucide-react"; // यहाँ Check और
 import { useProcurement } from "@/contexts/procurement-context";
 import { useEffect } from "react"; // Add this import
 
+import { User } from "lucide-react"; 
+
 import { Switch } from "@/components/ui/switch";
 
 // Reusable Labeled Input (since Input doesn't support label)
@@ -65,6 +67,26 @@ export function IndentPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selected, setSelected] = useState<(typeof indents)[0] | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // ... existing states ...
+
+  // ADD ये useEffect localStorage के लिए
+  useEffect(() => {
+    // Load user from localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setCurrentUser(userData);
+        console.log("User data loaded from localStorage:", userData);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
+  
 
 
   const [selectedIndents, setSelectedIndents] = useState<Set<string>>(new Set());
@@ -425,6 +447,8 @@ export function IndentPage() {
         rowData[8] = formattedDeliveryDate; // Column I - Delivery Date
         rowData[58] = form.qcInspectionRequired ? "Yes" : "No"; // Column BG (index 57) - QC Inspection Required
 
+        rowData[61] = currentUser ? currentUser.name : "";
+
         console.log("Submitting data to Google Sheets:", rowData);
         console.log(
           "QC Inspection going to column BG (index 57):",
@@ -519,6 +543,8 @@ export function IndentPage() {
             stage: "indent" as const,
             status: row[57] || "",
             createdAt: row[0] || "",
+
+            createdBy: row[61] || "",
           };
         });
 
@@ -770,6 +796,7 @@ export function IndentPage() {
                       "Qty",
                       "Rate",
                       "Delivery",
+                      "Create",
                       "Status",
                     ].map((h) => (
                       <th
@@ -867,6 +894,9 @@ export function IndentPage() {
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                         {i.deliveryDate}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                        {i.createdBy}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
@@ -966,6 +996,10 @@ export function IndentPage() {
                       <p className="text-gray-500">Delivery</p>
                       <p className="font-medium text-xs">{i.deliveryDate}</p>
                     </div>
+                    <div>
+                      <p className="text-gray-500">Create User</p>
+                      <p className="font-medium text-xs">{i.createdBy}</p>
+                    </div>
                   </div>
 
                   <div className="mt-4">
@@ -993,6 +1027,22 @@ export function IndentPage() {
         className="max-w-lg w-full mx-4 sm:mx-auto"
       >
         <form onSubmit={handleCreate} className="space-y-4" noValidate>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+      <div className="flex items-center gap-2">
+        <User className="w-4 h-4 text-blue-600" />
+        <div>
+          <p className="text-sm font-medium text-gray-700">User Name</p>
+          <p className="text-sm text-blue-600 font-semibold">
+            {currentUser ? currentUser.name : "Loading..."}
+          </p>
+        </div>
+      </div>
+     
+    </div>
+
+
+
           <LabeledInput
             label="Supplier Name"
             value={form.supplierName}

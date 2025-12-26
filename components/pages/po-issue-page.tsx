@@ -100,6 +100,7 @@ export function POIssuePage() {
               materialName: row[4] || "Material",
               quantity: row[6] || 0,
               rate: row[7] || 0,
+              createdBy: row[61] || "",
               deliveryDate: row[8] || "",
               status: "Pending",
               rowIndex: i + 1, // Store row index for updates
@@ -115,6 +116,7 @@ export function POIssuePage() {
               materialName: row[4] || "Material",
               quantity: row[6] || 0,
               rate: row[7] || 0,
+              createdBy: row[61] || "",
               deliveryDate: row[8] || "",
               issueDate: row[11] || "", // Column J
               supplierContact: row[10] || "", // Column K
@@ -560,6 +562,7 @@ export function POIssuePage() {
                         "Material",
                         "Qty",
                         "Rate",
+                        "Create User"
                       ].map((h) => (
                         <th
                           key={h}
@@ -614,6 +617,9 @@ export function POIssuePage() {
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           ₹{po.rate}
                         </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {po.createdBy}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -661,6 +667,12 @@ export function POIssuePage() {
                         <p>Supplier Name</p>
                         <p className="text-sm text-gray-600">
                           {po.supplierName}
+                        </p>
+                      </div>
+                      <div>
+                        <p>Create User</p>
+                        <p className="text-sm text-gray-600">
+                          {po.createdBy}
                         </p>
                       </div>
                     </div>
@@ -714,6 +726,7 @@ export function POIssuePage() {
                         "Material",
                         "Issue Date",
                         "Attachment",
+                        "Create User",
                         "Status",
                       ].map((h) => (
                         <th
@@ -764,6 +777,9 @@ export function POIssuePage() {
                             "-"
                           )}
                         </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {po.createdBy}
+                        </td>
                         <td className="px-4 py-3">
                           <span className="inline-flex rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                             {po.status}
@@ -809,8 +825,14 @@ export function POIssuePage() {
                       </div>
                       <div>
                         <p className="text-gray-500">Issue Date</p>
-                        <p className="font-medium text-xs">
+                        <p className="font-medium">
                           {formatDateForDisplay(po.issueDate)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Create User</p>
+                        <p className="font-medium text-xs">
+                          {formatDateForDisplay(po.createdBy)}
                         </p>
                       </div>
                       {po.attachmentName && (
@@ -827,6 +849,8 @@ export function POIssuePage() {
                           </a>
                         </div>
                       )}
+
+                      
                     </div>
                   </div>
                 ))}
