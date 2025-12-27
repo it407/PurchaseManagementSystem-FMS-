@@ -71,6 +71,41 @@ export function POIssuePage() {
   const [posPending, setPosPending] = useState<any[]>([]);
   const [posHistory, setPosHistory] = useState<any[]>([]);
 
+  const formatOnlyDate = (value: any) => {
+  if (!value) return "";
+
+  let d: Date | null = null;
+
+  // Case 1: MM/DD/YYYY, hh:mm:ss AM/PM
+  if (value.includes(",")) {
+    const temp = new Date(value);
+    if (!isNaN(temp.getTime())) {
+      d = temp;
+    }
+  }
+
+  // Case 2: DD/MM/YYYY HH:mm:ss
+  else if (value.includes("/")) {
+    const datePart = value.split(" ")[0]; // "26/12/2025"
+    const [day, month, year] = datePart.split("/");
+
+    if (day && month && year) {
+      return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+  }
+
+  // Final formatting
+  if (d) {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  return value;
+};
+
+
   // Fetch data from Google Sheets
   const fetchPOData = async () => {
     try {
@@ -79,6 +114,7 @@ export function POIssuePage() {
         "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec?sheet=FMS&action=fetch"
       );
       const result = await response.json();
+      console.log("result",result)
 
       if (result.success && result.data) {
         const pending: any[] = [];
@@ -102,6 +138,7 @@ export function POIssuePage() {
               rate: row[7] || 0,
               createdBy: row[61] || "",
               deliveryDate: row[8] || "",
+              plannedDate: formatOnlyDate(row[9]),
               status: "Pending",
               rowIndex: i + 1, // Store row index for updates
             });
@@ -118,6 +155,7 @@ export function POIssuePage() {
               rate: row[7] || 0,
               createdBy: row[61] || "",
               deliveryDate: row[8] || "",
+              plannedDate: formatOnlyDate(row[9]),
               issueDate: row[11] || "", // Column J
               supplierContact: row[10] || "", // Column K
               modeOfSend: row[11] || "", // Column L
@@ -549,12 +587,15 @@ export function POIssuePage() {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+            <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
+
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
                       {[
                         "Action",
+                        "Planned Date",
                         "Indent No.", // New column
                         "Product No.", // New column
                         "PO No.",
@@ -562,7 +603,8 @@ export function POIssuePage() {
                         "Material",
                         "Qty",
                         "Rate",
-                        "Create User"
+                        "Create User",
+                        
                       ].map((h) => (
                         <th
                           key={h}
@@ -579,6 +621,7 @@ export function POIssuePage() {
                         key={po.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
+                         
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
                             <Button
@@ -595,6 +638,9 @@ export function POIssuePage() {
                               Cancel Po
                             </Button>
                           </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {po. plannedDate}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {po.indentNumber}
@@ -620,6 +666,7 @@ export function POIssuePage() {
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {po.createdBy}
                         </td>
+                       
                       </tr>
                     ))}
                   </tbody>
@@ -643,6 +690,10 @@ export function POIssuePage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                      <div>
+                        <p className="text-gray-500">Planned DaTE</p>
+                        <p className="font-medium">{po.plannedDate}</p>
+                      </div>
                       <div>
                         <p className="text-gray-500">Indent No.</p>
                         <p className="font-medium">{po.indentNumber}</p>
@@ -714,11 +765,14 @@ export function POIssuePage() {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+            <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
+
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
                       {[
+                        "Planned Date",
                         "Indent No.", // New column
                         "Product No.", // New column
                         "PO No.",
@@ -728,6 +782,7 @@ export function POIssuePage() {
                         "Attachment",
                         "Create User",
                         "Status",
+                        
                       ].map((h) => (
                         <th
                           key={h}
@@ -744,6 +799,9 @@ export function POIssuePage() {
                         key={po.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {po.plannedDate}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {po.indentNumber}
                         </td>
@@ -785,6 +843,7 @@ export function POIssuePage() {
                             {po.status}
                           </span>
                         </td>
+                        
                       </tr>
                     ))}
                   </tbody>
@@ -814,6 +873,10 @@ export function POIssuePage() {
                       <div>
                         <p className="text-gray-500">Indent No.</p>
                         <p className="font-medium">{po.indentNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Planned Date</p>
+                        <p className="font-medium">{po.plannedDate}</p>
                       </div>
                       <div>
                         <p className="text-gray-500">Product No.</p>

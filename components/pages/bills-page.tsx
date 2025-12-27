@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -52,6 +51,7 @@ interface ProcurementRecord {
   productNo: string;
   materialName: string;
   supplierName: string;
+  plannedDate: string;
   amount: number;
   billNo?: string;
   dateSubmitted?: string;
@@ -73,18 +73,58 @@ export function BillsPage() {
 
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [cancelForm, setCancelForm] = useState({
-    remark: ""
+    remark: "",
   });
-  const [recordToCancel, setRecordToCancel] = useState<ProcurementRecord | null>(null);
+  const [recordToCancel, setRecordToCancel] =
+    useState<ProcurementRecord | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<ProcurementRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] =
+    useState<ProcurementRecord | null>(null);
   const [formData, setFormData] = useState({
     billNo: "",
     amount: "",
   });
+
+
+
+  const formatOnlyDate = (value: any) => {
+  if (!value) return "";
+
+  let d: Date | null = null;
+
+  // Case 1: MM/DD/YYYY, hh:mm:ss AM/PM
+  if (value.includes(",")) {
+    const temp = new Date(value);
+    if (!isNaN(temp.getTime())) {
+      d = temp;
+    }
+  }
+
+  // Case 2: DD/MM/YYYY HH:mm:ss
+  else if (value.includes("/")) {
+    const datePart = value.split(" ")[0]; // "26/12/2025"
+    const [day, month, year] = datePart.split("/");
+
+    if (day && month && year) {
+      return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+  }
+
+  // Final formatting
+  if (d) {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  return value;
+};
+
+
+
 
   // Fetch data from Google Sheets
   const fetchData = async () => {
@@ -109,7 +149,11 @@ export function BillsPage() {
           const quantityNumber = row[34]; // Column AI - Quantity Number
 
           // Check if Planned7 is not null and Actual7 is null for pending
-          if (planned7 && planned7.trim() !== "" && (!actual7 || actual7.trim() === "")) {
+          if (
+            planned7 &&
+            planned7.trim() !== "" &&
+            (!actual7 || actual7.trim() === "")
+          ) {
             pendingRecords.push({
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
@@ -117,6 +161,7 @@ export function BillsPage() {
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
               supplierName: row[3] || "Supplier",
+              plannedDate: formatOnlyDate(row[47]),
               amount: Number(row[50]) || 0,
               quantityNumber: quantityNumber || "", // Add this line
               quantity: row[6] || "0",
@@ -125,7 +170,12 @@ export function BillsPage() {
             });
           }
           // Check if both Planned7 and Actual7 are not null for history
-          else if (planned7 && planned7.trim() !== "" && actual7 && actual7.trim() !== "") {
+          else if (
+            planned7 &&
+            planned7.trim() !== "" &&
+            actual7 &&
+            actual7.trim() !== ""
+          ) {
             historyRecords.push({
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
@@ -136,6 +186,7 @@ export function BillsPage() {
               amount: Number(row[50]) || 0,
               billNo: row[49] || "",
               quantity: row[6] || "0",
+              plannedDate: formatOnlyDate(row[47]),
               rate: row[7] || 0,
               dateSubmitted: row[45] || "", // Column AT (Actual7)
               quantityNumber: quantityNumber || "", // Add this line
@@ -171,32 +222,26 @@ export function BillsPage() {
 
   const handleViewBill = (record: ProcurementRecord) => {
     if (record.billLink) {
-      window.open(record.billLink, '_blank');
+      window.open(record.billLink, "_blank");
     }
   };
 
-
-
   const formatTimestamp = () => {
-  const d = new Date();
-  
-  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
-  let day = String(d.getDate()).padStart(2, '0');        // DD
-  let year = d.getFullYear();                            // YYYY
-  
-  let hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
-  
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12; // Convert 0 → 12
-  
-  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
-};
+    const d = new Date();
 
+    let month = String(d.getMonth() + 1).padStart(2, "0"); // MM
+    let day = String(d.getDate()).padStart(2, "0"); // DD
+    let year = d.getFullYear(); // YYYY
 
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
 
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 0 → 12
 
+    return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,13 +251,11 @@ export function BillsPage() {
     try {
       // Get current date in dd/mm/yyyy format
       const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, "0");
+      const month = String(now.getMonth() + 1).padStart(2, "0");
       const year = now.getFullYear();
       // const timestamp = new Date().toLocaleString();
       const timestamp = formatTimestamp();
-
-
 
       // Generate bill link using folder ID
 
@@ -223,10 +266,10 @@ export function BillsPage() {
         sheetName: "FMS",
         rowIndex: selectedRecord.rowIndex,
         columnData: {
-          "AW": timestamp, // Column AT - Actual7 (current date)
-          "AX": formData.billNo, // Column AU - Bill No
-          "AY": formData.amount, // Column AV - Bill Link
-        }
+          AW: timestamp, // Column AT - Actual7 (current date)
+          AX: formData.billNo, // Column AU - Bill No
+          AY: formData.amount, // Column AV - Bill Link
+        },
       };
 
       // Submit to Google Sheets
@@ -249,17 +292,17 @@ export function BillsPage() {
         setSelectedRecord(null);
         setSubmitLoading(false);
       }, 1500);
-
     } catch (error) {
       console.error("Error submitting data:", error);
       setSubmitLoading(false);
     }
   };
 
-
   const generateCancelSerialNumber = async () => {
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch"
+      );
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -267,20 +310,24 @@ export function BillsPage() {
         let highestNumber = 0;
         sheetData.forEach((row: any[]) => {
           const serialNumber = row[1];
-          if (serialNumber && typeof serialNumber === 'string' && serialNumber.startsWith('SN-')) {
-            const numberPart = parseInt(serialNumber.replace('SN-', ''));
+          if (
+            serialNumber &&
+            typeof serialNumber === "string" &&
+            serialNumber.startsWith("SN-")
+          ) {
+            const numberPart = parseInt(serialNumber.replace("SN-", ""));
             if (!isNaN(numberPart) && numberPart > highestNumber) {
               highestNumber = numberPart;
             }
           }
         });
         const nextNumber = highestNumber + 1;
-        return `SN-${String(nextNumber).padStart(3, '0')}`;
+        return `SN-${String(nextNumber).padStart(3, "0")}`;
       }
     } catch (error) {
       console.error("Error generating serial number:", error);
     }
-    return 'SN-001';
+    return "SN-001";
   };
 
   // Add this cancel handler function
@@ -304,22 +351,25 @@ export function BillsPage() {
         recordToCancel.quantity,
         recordToCancel.rate,
         "Bills Submission", // Stage
-        cancelForm.remark
+        cancelForm.remark,
       ];
 
       console.log("Submitting cancel data to Google Sheets:", rowData);
 
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          action: "insert",
-          sheetName: "Cancel",
-          rowData: JSON.stringify(rowData)
-        })
-      });
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "insert",
+            sheetName: "Cancel",
+            rowData: JSON.stringify(rowData),
+          }),
+        }
+      );
 
       const result = await response.json();
 
@@ -350,70 +400,84 @@ export function BillsPage() {
     setIsCancelOpen(true);
   };
 
-
   const filterRecords = (records: ProcurementRecord[]) => {
-  if (!searchTerm.trim()) return records;
-  
-  const term = searchTerm.toLowerCase();
-  return records.filter(record =>
-    record.indentNumber?.toLowerCase().includes(term) ||
-    record.productNo?.toLowerCase().includes(term) ||
-    record.billNo?.toLowerCase().includes(term) ||
-    record.poNo?.toLowerCase().includes(term) ||
-    record.supplierName?.toLowerCase().includes(term) ||
-    record.materialName?.toLowerCase().includes(term) ||
-    record.amount?.toString().includes(term) ||
-    record.quantityNumber?.toLowerCase().includes(term)
-  );
-};
+    if (!searchTerm.trim()) return records;
 
-// Update the filtered records in both tabs
-const filteredPending = filterRecords(pending);
-const filteredHistory = filterRecords(history);
+    const term = searchTerm.toLowerCase();
+    return records.filter(
+      (record) =>
+        record.indentNumber?.toLowerCase().includes(term) ||
+        record.productNo?.toLowerCase().includes(term) ||
+        record.billNo?.toLowerCase().includes(term) ||
+        record.poNo?.toLowerCase().includes(term) ||
+        record.supplierName?.toLowerCase().includes(term) ||
+        record.materialName?.toLowerCase().includes(term) ||
+        record.amount?.toString().includes(term) ||
+        record.quantityNumber?.toLowerCase().includes(term)
+    );
+  };
+
+  // Update the filtered records in both tabs
+  const filteredPending = filterRecords(pending);
+  const filteredHistory = filterRecords(history);
 
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Submit Bills to Accounts</h2>
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+        Submit Bills to Accounts
+      </h2>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setTab("pending")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "pending"
-            ? "border-blue-600 text-blue-600"
-            : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "pending"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
         >
           Pending ({pending.length})
         </button>
         <button
           onClick={() => setTab("history")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "history"
-            ? "border-blue-600 text-blue-600"
-            : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "history"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
         >
           History ({history.length})
         </button>
       </div>
 
       <div className="flex justify-between items-center gap-4">
-  <div className="relative flex-1 max-w-md">
-    <Input
-      type="text"
-      placeholder={`Search in ${tab}...`}
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      className="pl-10"
-    />
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </div>
-  </div>
-</div>
+        <div className="relative flex-1 max-w-md">
+          <Input
+            type="text"
+            placeholder={`Search in ${tab}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              className="h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
 
       {/* Loading State */}
       {loading && (
@@ -427,24 +491,30 @@ const filteredHistory = filterRecords(history);
       {!loading && tab === "pending" && (
         <Card className="overflow-hidden">
           {pending.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No pending bills</p>
-        <p className="text-sm mt-1">All MRN materials have been billed.</p>
-      </div>
-    ) : filteredPending.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No matching records found</p>
-        <p className="text-sm mt-1">Try adjusting your search terms.</p>
-      </div>
-    ) : (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No pending bills</p>
+              <p className="text-sm mt-1">
+                All MRN materials have been billed.
+              </p>
+            </div>
+          ) : filteredPending.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No matching records found</p>
+              <p className="text-sm mt-1">Try adjusting your search terms.</p>
+            </div>
+          ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
@@ -465,7 +535,10 @@ const filteredHistory = filterRecords(history);
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {filteredPending.map((record) => (
-                      <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                      <tr
+                        key={record.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
                             <Button
@@ -483,10 +556,21 @@ const filteredHistory = filterRecords(history);
                             </Button>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.poNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.indentNumber}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.productNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.poNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.supplierName}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900 font-medium">
                           ₹{record.amount.toLocaleString("en-IN")}
                         </td>
@@ -498,15 +582,19 @@ const filteredHistory = filterRecords(history);
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                  {filteredPending.map((record) => (
+                {filteredPending.map((record) => (
                   <div
                     key={record.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <p className="font-semibold text-gray-900">{record.poNo}</p>
-                        <p className="text-sm text-gray-600">{record.supplierName}</p>
+                        <p className="font-semibold text-gray-900">
+                          {record.poNo}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {record.supplierName}
+                        </p>
                       </div>
                       <span className="text-xs font-medium text-yellow-800 bg-yellow-100 px-2.5 py-0.5 rounded-full">
                         Pending
@@ -514,6 +602,10 @@ const filteredHistory = filterRecords(history);
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                      <div>
+                        <p className="text-gray-500">Planned Date</p>
+                        <p className="font-medium">{record.plannedDate}</p>
+                      </div>
                       <div>
                         <p className="text-gray-500">Indent No.</p>
                         <p className="font-medium">{record.indentNumber}</p>
@@ -525,7 +617,9 @@ const filteredHistory = filterRecords(history);
                     </div>
                     <div className="mb-4">
                       <p className="text-sm text-gray-500">Bill Amount</p>
-                      <p className="font-bold text-green-700">₹{record.amount.toLocaleString("en-IN")}</p>
+                      <p className="font-bold text-green-700">
+                        ₹{record.amount.toLocaleString("en-IN")}
+                      </p>
                     </div>
 
                     {/* Action Button First */}
@@ -553,24 +647,27 @@ const filteredHistory = filterRecords(history);
       {/* === HISTORY TAB === */}
       {!loading && tab === "history" && (
         <Card className="overflow-hidden">
-           {history.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No bill history</p>
-        <p className="text-sm mt-1">Submitted bills will appear here.</p>
-      </div>
-    ) : filteredHistory.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No matching records found</p>
-        <p className="text-sm mt-1">Try adjusting your search terms.</p>
-      </div>
-    ) : (
+          {history.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No bill history</p>
+              <p className="text-sm mt-1">Submitted bills will appear here.</p>
+            </div>
+          ) : filteredHistory.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <p className="text-lg font-medium">No matching records found</p>
+              <p className="text-sm mt-1">Try adjusting your search terms.</p>
+            </div>
+          ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
-
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
                       </th>
@@ -595,13 +692,29 @@ const filteredHistory = filterRecords(history);
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                   {filteredHistory.map((record) => (
-                      <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.billNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.poNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
+                    {filteredHistory.map((record) => (
+                      <tr
+                        key={record.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.indentNumber}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.productNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.billNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.poNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.supplierName}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-green-700">
                           ₹{record.amount.toLocaleString("en-IN")}
                         </td>
@@ -625,9 +738,11 @@ const filteredHistory = filterRecords(history);
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <p className="font-semibold text-gray-900">{record.billNo}</p>
+                        <p className="font-semibold text-gray-900">
+                          {record.billNo}
+                        </p>
                       </div>
-                      
+
                       <span className="text-xs font-medium text-green-800 bg-green-100 px-2.5 py-0.5 rounded-full">
                         Submitted
                       </span>
@@ -640,14 +755,15 @@ const filteredHistory = filterRecords(history);
                       </div>
                       <div>
                         <p className="text-gray-500">Amount</p>
-                        <p className="font-medium text-green-700">₹{record.amount.toLocaleString("en-IN")}</p>
+                        <p className="font-medium text-green-700">
+                          ₹{record.amount.toLocaleString("en-IN")}
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-500">Po Number</p>
 
                         <p className="text-sm text-gray-600">{record.poNo}</p>
-                        </div>
-
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                       <div>
@@ -659,8 +775,6 @@ const filteredHistory = filterRecords(history);
                         <p className="font-medium">{record.productNo}</p>
                       </div>
                     </div>
-
-
                   </div>
                 ))}
               </div>
@@ -678,14 +792,26 @@ const filteredHistory = filterRecords(history);
         backdropClassName="bg-black/30"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <LabeledInput label="PO No." value={selectedRecord?.poNo || ""} onChange={() => { }} disabled />
-          <LabeledInput label="Supplier Name" value={selectedRecord?.supplierName || ""} onChange={() => { }} disabled />
+          <LabeledInput
+            label="PO No."
+            value={selectedRecord?.poNo || ""}
+            onChange={() => {}}
+            disabled
+          />
+          <LabeledInput
+            label="Supplier Name"
+            value={selectedRecord?.supplierName || ""}
+            onChange={() => {}}
+            disabled
+          />
 
           <LabeledInput
             label="Bill No."
             placeholder="e.g. BILL-001"
             value={formData.billNo}
-            onChange={(e) => setFormData({ ...formData, billNo: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, billNo: e.target.value })
+            }
             required
           />
 
@@ -694,7 +820,9 @@ const filteredHistory = filterRecords(history);
             type="number"
             placeholder="0"
             value={formData.amount}
-            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, amount: e.target.value })
+            }
             required
           />
 
@@ -735,7 +863,8 @@ const filteredHistory = filterRecords(history);
         <form onSubmit={handleCancel} className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
-              Are you sure you want to cancel this bill submission record? This action cannot be undone.
+              Are you sure you want to cancel this bill submission record? This
+              action cannot be undone.
             </p>
           </div>
 
@@ -745,15 +874,23 @@ const filteredHistory = filterRecords(history);
                 <span className="text-gray-500">PO No:</span>
                 <span className="font-medium">{recordToCancel.poNo}</span>
                 <span className="text-gray-500">Indent No:</span>
-                <span className="font-medium">{recordToCancel.indentNumber}</span>
+                <span className="font-medium">
+                  {recordToCancel.indentNumber}
+                </span>
                 <span className="text-gray-500">Product No:</span>
                 <span className="font-medium">{recordToCancel.productNo}</span>
                 <span className="text-gray-500">Supplier:</span>
-                <span className="font-medium">{recordToCancel.supplierName}</span>
+                <span className="font-medium">
+                  {recordToCancel.supplierName}
+                </span>
                 <span className="text-gray-500">Material:</span>
-                <span className="font-medium">{recordToCancel.materialName}</span>
+                <span className="font-medium">
+                  {recordToCancel.materialName}
+                </span>
                 <span className="text-gray-500">Amount:</span>
-                <span className="font-medium">₹{recordToCancel.amount.toLocaleString("en-IN")}</span>
+                <span className="font-medium">
+                  ₹{recordToCancel.amount.toLocaleString("en-IN")}
+                </span>
               </div>
             </div>
           )}

@@ -718,7 +718,7 @@ export function IndentPage() {
           />
         </div>
 
-        {/* कोई checkbox select होने पर ही buttons दिखाएं */}
+      
         {selectedIndents.size > 0 && (
           <div className="flex gap-2">
             <Button

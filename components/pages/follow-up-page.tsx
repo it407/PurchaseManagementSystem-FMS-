@@ -10,10 +10,8 @@ import { Eye, MessageSquare } from "lucide-react";
 import { useProcurement } from "@/contexts/procurement-context";
 import { useEffect } from "react"; // Add this import with other imports
 
-
 import DatePicker from "react-datepicker";
 // import "react-datepicker/dist/react-datepicker.css";
-
 
 // Fixed LabeledInput
 function LabeledInput({
@@ -191,9 +189,9 @@ export function FollowUpPage() {
         //   editFormData.expectedDelivery
         // );
 
-        const formattedExpectedDate =
-  addSystemTimeToDate(editFormData.expectedDelivery);
-
+        const formattedExpectedDate = addSystemTimeToDate(
+          editFormData.expectedDelivery
+        );
 
         const updatePayload = {
           action: "update",
@@ -291,8 +289,9 @@ export function FollowUpPage() {
         };
 
         // const formattedExpectedDate = formatDate(formData.expectedDelivery);
-        const formattedExpectedDate =
-  addSystemTimeToDate(formData.expectedDelivery);
+        const formattedExpectedDate = addSystemTimeToDate(
+          formData.expectedDelivery
+        );
 
         const formattedCurrentDate = formatDate(currentDate);
 
@@ -336,6 +335,42 @@ export function FollowUpPage() {
     }
   };
 
+
+  const formatOnlyDate = (value: any) => {
+  if (!value) return "";
+
+  let d: Date | null = null;
+
+  // Case 1: MM/DD/YYYY, hh:mm:ss AM/PM
+  if (value.includes(",")) {
+    const temp = new Date(value);
+    if (!isNaN(temp.getTime())) {
+      d = temp;
+    }
+  }
+
+  // Case 2: DD/MM/YYYY HH:mm:ss
+  else if (value.includes("/")) {
+    const datePart = value.split(" ")[0]; // "26/12/2025"
+    const [day, month, year] = datePart.split("/");
+
+    if (day && month && year) {
+      return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+  }
+
+  // Final formatting
+  if (d) {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  return value;
+};
+
+
   // Fetch data from Google Sheets
   const fetchFollowUpData = async () => {
     try {
@@ -364,6 +399,7 @@ export function FollowUpPage() {
               materialName: row[4] || "Material",
               quantity: row[6] || 0,
               rate: row[7] || 0,
+              plannedDate: formatOnlyDate(row[16]),
               createdBy: row[61] || "",
               deliveryDate: row[8] || "",
               expectedDelivery: row[8] || "", // Column N
@@ -382,6 +418,7 @@ export function FollowUpPage() {
               quantity: row[6] || 0,
               createdBy: row[61] || "",
               rate: row[5] || 0,
+              plannedDate: formatOnlyDate(row[16]),
               deliveryDate: row[8] || "",
               remark: row[19] || "",
               expectedDelivery: row[18] || "", // Column N
@@ -500,28 +537,22 @@ export function FollowUpPage() {
     }
   };
 
-
   const addSystemTimeToDate = (dateString: string) => {
-  const now = new Date(); // system time
-  const date = new Date(dateString);
+    const now = new Date(); // system time
+    const date = new Date(dateString);
 
-  date.setHours(
-    now.getHours(),
-    now.getMinutes(),
-    now.getSeconds()
-  );
+    date.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
 
-  return date.toLocaleString("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-};
-
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  };
 
   // Add this function to open cancel modal
   const openCancelModal = (record: any) => {
@@ -590,61 +621,64 @@ export function FollowUpPage() {
   };
 
   // Replace the existing formatDateToDDMMYYYY function with this:
-const formatDateToDDMMYYYYWithTime = (dateString: string) => {
-  if (!dateString) return "";
+  const formatDateToDDMMYYYYWithTime = (dateString: string) => {
+    if (!dateString) return "";
 
-  try {
-    // If date is in "MM/DD/YYYY, HH:MM:SS AM/PM" format (from Google Sheets)
-    if (dateString.includes("/") && dateString.includes(",")) {
-      const [datePart, timePart] = dateString.split(",");
-      const [month, day, year] = datePart.split("/");
-      const [time, ampm] = timePart.trim().split(" ");
-      
-      // Extract hours and minutes from time (HH:MM:SS)
-      const [hours, minutes] = time.split(":");
-      
-      return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year} ${hours}:${minutes} ${ampm}`;
-    }
+    try {
+      // If date is in "MM/DD/YYYY, HH:MM:SS AM/PM" format (from Google Sheets)
+      if (dateString.includes("/") && dateString.includes(",")) {
+        const [datePart, timePart] = dateString.split(",");
+        const [month, day, year] = datePart.split("/");
+        const [time, ampm] = timePart.trim().split(" ");
 
-    // If date is in ISO format or datetime-local format
-    if (dateString.includes("T")) {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      
-      let hours = date.getHours();
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      
-      return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
-    }
+        // Extract hours and minutes from time (HH:MM:SS)
+        const [hours, minutes] = time.split(":");
 
-    // If already has some other format but contains time, try to parse it
-    if (dateString.includes(":")) {
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
+        return `${day.padStart(2, "0")}/${month.padStart(
+          2,
+          "0"
+        )}/${year} ${hours}:${minutes} ${ampm}`;
+      }
+
+      // If date is in ISO format or datetime-local format
+      if (dateString.includes("T")) {
+        const date = new Date(dateString);
         const day = String(date.getDate()).padStart(2, "0");
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const year = date.getFullYear();
-        
+
         let hours = date.getHours();
         const minutes = String(date.getMinutes()).padStart(2, "0");
-        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const ampm = hours >= 12 ? "PM" : "AM";
         hours = hours % 12 || 12;
-        
+
         return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
       }
-    }
 
-    // If no time information found, return just date
-    return dateString;
-  } catch (error) {
-    console.error("Error formatting date with time:", error);
-    return dateString;
-  }
-};
+      // If already has some other format but contains time, try to parse it
+      if (dateString.includes(":")) {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+          const day = String(date.getDate()).padStart(2, "0");
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const year = date.getFullYear();
+
+          let hours = date.getHours();
+          const minutes = String(date.getMinutes()).padStart(2, "0");
+          const ampm = hours >= 12 ? "PM" : "AM";
+          hours = hours % 12 || 12;
+
+          return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+        }
+      }
+
+      // If no time information found, return just date
+      return dateString;
+    } catch (error) {
+      console.error("Error formatting date with time:", error);
+      return dateString;
+    }
+  };
 
   return (
     <div className="space-y-6 p-4 md:p-0">
@@ -715,12 +749,16 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray,gray-50">
+                  <thead className="bg-gray,gray-50 sticky top-0 z-20">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
@@ -764,6 +802,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                               Cancel Follow-up
                             </Button>
                           </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
                           {record.indentNumber}
@@ -814,6 +855,10 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                       <div>
                         <p className="text-gray-500">Indent No.</p>
                         <p className="font-medium">{record.indentNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Planned Date</p>
+                        <p className="font-medium">{record.plannedDate}</p>
                       </div>
                       <div>
                         <p className="text-gray-500">Product No.</p>
@@ -874,11 +919,15 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
                       <td className="px-4 py-3">Action</td>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
                       </th>
@@ -924,6 +973,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                           </Button>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
                           {record.indentNumber}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
@@ -939,7 +991,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                           {record.materialName}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                          {formatDateToDDMMYYYYWithTime(record.expectedDelivery)}
+                          {formatDateToDDMMYYYYWithTime(
+                            record.expectedDelivery
+                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900 break-words text-center">
                           {record.remark}
@@ -986,6 +1040,10 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                         <p className="font-medium">{record.indentNumber}</p>
                       </div>
                       <div>
+                        <p className="text-gray-500">Planned Date</p>
+                        <p className="font-medium">{record.plannedDate}</p>
+                      </div>
+                      <div>
                         <p className="text-gray-500">Product No.</p>
                         <p className="font-medium">{record.productNo}</p>
                       </div>
@@ -996,7 +1054,9 @@ const formatDateToDDMMYYYYWithTime = (dateString: string) => {
                       <div>
                         <p className="text-gray-500">Expected</p>
                         <p className="font-medium text-xs">
-                         {formatDateToDDMMYYYYWithTime(record.expectedDelivery)}
+                          {formatDateToDDMMYYYYWithTime(
+                            record.expectedDelivery
+                          )}
                         </p>
                       </div>
                     </div>

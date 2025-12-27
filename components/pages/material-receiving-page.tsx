@@ -1,8 +1,7 @@
-
 "use client";
 
 import type React from "react";
-import { useState, useEffect ,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +51,8 @@ interface Record {
   productNo: string;
   supplierName: string;
   materialName: string;
+  expectedDate: string;
+  plannedDate: string;
   quantity: string;
   rate?: string;
   planned2: string;
@@ -73,17 +74,14 @@ export function MaterialReceivingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<Record | null>(null);
 
-
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-const pasteBoxRef = useRef<HTMLDivElement | null>(null);
-
+  const pasteBoxRef = useRef<HTMLDivElement | null>(null);
 
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [cancelForm, setCancelForm] = useState({
-    remark: ""
+    remark: "",
   });
   const [recordToCancel, setRecordToCancel] = useState<Record | null>(null);
-
 
   const [formData, setFormData] = useState({
     vehicleNo: "",
@@ -94,6 +92,40 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFormData({ ...formData, attachment: file });
+  };
+
+  const formatOnlyDate = (value: any) => {
+    if (!value) return "";
+
+    let d: Date | null = null;
+
+    // Case 1: MM/DD/YYYY, hh:mm:ss AM/PM
+    if (value.includes(",")) {
+      const temp = new Date(value);
+      if (!isNaN(temp.getTime())) {
+        d = temp;
+      }
+    }
+
+    // Case 2: DD/MM/YYYY HH:mm:ss
+    else if (value.includes("/")) {
+      const datePart = value.split(" ")[0]; // "26/12/2025"
+      const [day, month, year] = datePart.split("/");
+
+      if (day && month && year) {
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+      }
+    }
+
+    // Final formatting
+    if (d) {
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    return value;
   };
 
   // Fetch data from Google Sheets
@@ -118,7 +150,11 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
           const actual1 = row[22]; // Column U
 
           // Check if Planned2 is not null and Actual1 is null for pending
-          if (planned2 && planned2.trim() !== "" && (!actual1 || actual1.trim() === "")) {
+          if (
+            planned2 &&
+            planned2.trim() !== "" &&
+            (!actual1 || actual1.trim() === "")
+          ) {
             pendingRecords.push({
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
@@ -126,6 +162,8 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
               poNo: row[5] || `PO-${i + 1}`,
               supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
+              expectedDate: row[18] || "",
+              plannedDate: formatOnlyDate(row[16]),
               quantity: row[6] || "0",
               rate: row[7] || 0,
               planned2: planned2,
@@ -134,7 +172,12 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
             });
           }
           // Check if both Planned2 and Actual1 are not null for history
-          else if (planned2 && planned2.trim() !== "" && actual1 && actual1.trim() !== "") {
+          else if (
+            planned2 &&
+            planned2.trim() !== "" &&
+            actual1 &&
+            actual1.trim() !== ""
+          ) {
             historyRecords.push({
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
@@ -143,12 +186,16 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
               supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
               quantity: row[5] || "0",
+              expectedDate: row[18] || "",
+              plannedDate: formatOnlyDate(row[16]),
               planned2: planned2,
               actual1: actual1,
-              gateEntryNo: row[43] || `GE-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column V
+              gateEntryNo:
+                row[43] ||
+                `GE-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column V
               vehicleNo: row[23] || "N/A", // Column W
               driverName: row[24] || "N/A", // Column X
-  attachmentFile: row[25] || "", // Column Z - Attachment File
+              attachmentFile: row[25] || "", // Column Z - Attachment File
               status: "Received",
               rowIndex: i + 1,
             });
@@ -176,24 +223,22 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
     setIsModalOpen(true);
   };
 
-
   const formatTimestamp = () => {
-  const d = new Date();
-  
-  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
-  let day = String(d.getDate()).padStart(2, '0');        // DD
-  let year = d.getFullYear();                            // YYYY
-  
-  let hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
-  
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12; // Convert 0 → 12
-  
-  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
-};
+    const d = new Date();
 
+    let month = String(d.getMonth() + 1).padStart(2, "0"); // MM
+    let day = String(d.getDate()).padStart(2, "0"); // DD
+    let year = d.getFullYear(); // YYYY
+
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 0 → 12
+
+    return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,7 +261,7 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         const base64Data = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (e) => {
-            const base64 = (e.target?.result as string).split(',')[1];
+            const base64 = (e.target?.result as string).split(",")[1];
             resolve(base64);
           };
           reader.onerror = () => reject(new Error("Failed to read file"));
@@ -228,7 +273,7 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
           base64Data: base64Data,
           fileName: formData.attachment.name,
           mimeType: formData.attachment.type,
-          folderId: "1k5Hs55027DERG_l9rjG1tpaxds768orW"
+          folderId: "1k5Hs55027DERG_l9rjG1tpaxds768orW",
         };
 
         console.log("📁 Uploading file to Google Apps Script...");
@@ -238,7 +283,7 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
           {
             method: "POST",
             body: new URLSearchParams({
-              data: JSON.stringify(uploadPayload)
+              data: JSON.stringify(uploadPayload),
             }),
           }
         );
@@ -261,11 +306,11 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         sheetName: "FMS",
         rowIndex: selectedRecord.rowIndex,
         columnData: {
-          "W": timestamp, // Column U - Actual1 (current date)
-          "X": formData.vehicleNo, // Column V - Vehicle No
-          "Y": formData.driverName, // Column W - Driver Name
-          "Z": fileLink, // Column X - Attachment File
-        }
+          W: timestamp, // Column U - Actual1 (current date)
+          X: formData.vehicleNo, // Column V - Vehicle No
+          Y: formData.driverName, // Column W - Driver Name
+          Z: fileLink, // Column X - Attachment File
+        },
       };
 
       // Submit to Google Sheets
@@ -289,18 +334,17 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         setFormData({ vehicleNo: "", driverName: "", attachment: null });
         setSubmitLoading(false);
       }, 1500);
-
     } catch (error) {
       console.error("Error submitting data:", error);
       setSubmitLoading(false);
     }
   };
 
-
-
   const generateCancelSerialNumber = async () => {
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch"
+      );
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -308,20 +352,24 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         let highestNumber = 0;
         sheetData.forEach((row: any[]) => {
           const serialNumber = row[1];
-          if (serialNumber && typeof serialNumber === 'string' && serialNumber.startsWith('SN-')) {
-            const numberPart = parseInt(serialNumber.replace('SN-', ''));
+          if (
+            serialNumber &&
+            typeof serialNumber === "string" &&
+            serialNumber.startsWith("SN-")
+          ) {
+            const numberPart = parseInt(serialNumber.replace("SN-", ""));
             if (!isNaN(numberPart) && numberPart > highestNumber) {
               highestNumber = numberPart;
             }
           }
         });
         const nextNumber = highestNumber + 1;
-        return `SN-${String(nextNumber).padStart(3, '0')}`;
+        return `SN-${String(nextNumber).padStart(3, "0")}`;
       }
     } catch (error) {
       console.error("Error generating serial number:", error);
     }
-    return 'SN-001';
+    return "SN-001";
   };
 
   // Add this cancel handler function
@@ -345,22 +393,25 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         recordToCancel.quantity,
         recordToCancel.rate,
         "Gate Entry", // Stage
-        cancelForm.remark
+        cancelForm.remark,
       ];
 
       console.log("Submitting cancel data to Google Sheets:", rowData);
 
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          action: "insert",
-          sheetName: "Cancel",
-          rowData: JSON.stringify(rowData)
-        })
-      });
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "insert",
+            sheetName: "Cancel",
+            rowData: JSON.stringify(rowData),
+          }),
+        }
+      );
 
       const result = await response.json();
 
@@ -399,17 +450,18 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
     if (!searchTerm.trim()) return records;
 
     const term = searchTerm.toLowerCase();
-    return records.filter(record =>
-      record.indentNumber?.toLowerCase().includes(term) ||
-      record.productNo?.toLowerCase().includes(term) ||
-      record.poNo?.toLowerCase().includes(term) ||
-      record.supplierName?.toLowerCase().includes(term) ||
-      record.materialName?.toLowerCase().includes(term) ||
-      record.quantity?.toLowerCase().includes(term) ||
-      record.gateEntryNo?.toLowerCase().includes(term) ||
-      record.vehicleNo?.toLowerCase().includes(term) ||
-      record.driverName?.toLowerCase().includes(term) ||
-      record.status?.toLowerCase().includes(term)
+    return records.filter(
+      (record) =>
+        record.indentNumber?.toLowerCase().includes(term) ||
+        record.productNo?.toLowerCase().includes(term) ||
+        record.poNo?.toLowerCase().includes(term) ||
+        record.supplierName?.toLowerCase().includes(term) ||
+        record.materialName?.toLowerCase().includes(term) ||
+        record.quantity?.toLowerCase().includes(term) ||
+        record.gateEntryNo?.toLowerCase().includes(term) ||
+        record.vehicleNo?.toLowerCase().includes(term) ||
+        record.driverName?.toLowerCase().includes(term) ||
+        record.status?.toLowerCase().includes(term)
     );
   };
 
@@ -420,25 +472,29 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Gate Entry</h2>
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+        Gate Entry
+      </h2>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setTab("pending")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "pending"
-            ? "border-blue-600 text-blue-600"
-            : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "pending"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
         >
           Pending ({pending.length})
         </button>
         <button
           onClick={() => setTab("history")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "history"
-            ? "border-blue-600 text-blue-600"
-            : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "history"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
         >
           History ({history.length})
         </button>
@@ -454,8 +510,18 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
             className="pl-10"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              className="h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
           </div>
         </div>
@@ -484,7 +550,9 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
           {pending.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <p className="text-lg font-medium">No pending deliveries</p>
-              <p className="text-sm mt-1">All followed-up POs have been received.</p>
+              <p className="text-sm mt-1">
+                All followed-up POs have been received.
+              </p>
             </div>
           ) : filteredPending.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
@@ -494,12 +562,16 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
@@ -519,11 +591,17 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Quantity
                       </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Expected Date
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {filteredPending.map((record) => (
-                      <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                      <tr
+                        key={record.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
                             <Button
@@ -541,12 +619,30 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                             </Button>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.poNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.materialName}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.quantity}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.indentNumber}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.productNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.poNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.supplierName}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.materialName}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.quantity}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.expectedDate}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -561,10 +657,13 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start justify-between mb-3">
-
                       <div>
-                        <p className="font-semibold text-gray-900">{record.poNo}</p>
-                        <p className="text-sm text-gray-600">{record.supplierName}</p>
+                        <p className="font-semibold text-gray-900">
+                          {record.poNo}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {record.supplierName}
+                        </p>
                       </div>
                       <span className="text-xs font-medium text-yellow-800 bg-yellow-100 px-2.5 py-0.5 rounded-full">
                         Followed-up
@@ -572,6 +671,10 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                      <div>
+                        <p className="text-gray-500">Planned Date</p>
+                        <p className="font-medium">{record.plannedDate}</p>
+                      </div>
                       <div>
                         <p className="text-gray-500">Indent No.</p>
                         <p className="font-medium">{record.indentNumber}</p>
@@ -587,6 +690,10 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                       <div>
                         <p className="text-gray-500">Qty</p>
                         <p className="font-medium">{record.quantity}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Expected Date</p>
+                        <p className="font-medium">{record.expectedDate}</p>
                       </div>
                     </div>
 
@@ -628,12 +735,14 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
-
-                    
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
                       </th>
@@ -661,37 +770,63 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Expected Date
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {filteredHistory.map((record) => (
-                      <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.poNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.materialName}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.vehicleNo}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.driverName}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                    {record.attachmentFile ? (
-                      <a 
-                        href={record.attachmentFile} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline text-xs"
+                      <tr
+                        key={record.id}
+                        className="hover:bg-gray-50 transition-colors"
                       >
-                        View Attachment
-                      </a>
-                    ) : (
-                      "No file"
-                    )}
-                  </td>
-                        
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.indentNumber}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.productNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.poNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.supplierName}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.materialName}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.vehicleNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.driverName}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.attachmentFile ? (
+                            <a
+                              href={record.attachmentFile}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline text-xs"
+                            >
+                              View Attachment
+                            </a>
+                          ) : (
+                            "No file"
+                          )}
+                        </td>
+
                         <td className="px-4 py-3">
                           <span className="inline-flex rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                             {record.status}
                           </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                          {record.expectedDate}
                         </td>
                       </tr>
                     ))}
@@ -700,64 +835,70 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
               </div>
 
               {/* Mobile Cards */}
-               <div className="md:hidden space-y-4 p-4">
-          {filteredHistory.map((record) => (
-            <div
-              key={record.id}
-              className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-semibold text-gray-900">{record.gateEntryNo}</p>
-                  <p className="text-sm text-gray-600">{record.poNo}</p>
-                </div>
-                <span className="text-xs font-medium text-green-800 bg-green-100 px-2.5 py-0.5 rounded-full">
-                  Received
-                </span>
-              </div>
+              <div className="md:hidden space-y-4 p-4">
+                {filteredHistory.map((record) => (
+                  <div
+                    key={record.id}
+                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {record.gateEntryNo}
+                        </p>
+                        <p className="text-sm text-gray-600">{record.poNo}</p>
+                      </div>
+                      <span className="text-xs font-medium text-green-800 bg-green-100 px-2.5 py-0.5 rounded-full">
+                        Received
+                      </span>
+                    </div>
 
-              <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                <div>
-                  <p className="text-gray-500">Indent No.</p>
-                  <p className="font-medium">{record.indentNumber}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Product No.</p>
-                  <p className="font-medium">{record.productNo}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Material</p>
-                  <p className="font-medium">{record.materialName}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Vehicle</p>
-                  <p className="font-medium text-xs">{record.vehicleNo}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Driver</p>
-                  <p className="font-medium text-xs">{record.driverName || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Attachment</p>
-                  <p className="font-medium text-xs">
-                    {record.attachmentFile ? (
-                      <a 
-                        href={record.attachmentFile} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        View
-                      </a>
-                    ) : (
-                      "No file"
-                    )}
-                  </p>
-                </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                      <div>
+                        <p className="text-gray-500">Indent No.</p>
+                        <p className="font-medium">{record.indentNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Product No.</p>
+                        <p className="font-medium">{record.productNo}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Material</p>
+                        <p className="font-medium">{record.materialName}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Vehicle</p>
+                        <p className="font-medium text-xs">
+                          {record.vehicleNo}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Driver</p>
+                        <p className="font-medium text-xs">
+                          {record.driverName || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Attachment</p>
+                        <p className="font-medium text-xs">
+                          {record.attachmentFile ? (
+                            <a
+                              href={record.attachmentFile}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View
+                            </a>
+                          ) : (
+                            "No file"
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
             </>
           )}
         </Card>
@@ -771,18 +912,17 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         className="max-w-lg w-full mx-4 sm:mx-auto"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-
-          <LabeledInput 
-          label="PO No." 
-          value={selectedRecord?.poNo || ""} 
-          onChange={() => { }} 
-          disabled 
+          <LabeledInput
+            label="PO No."
+            value={selectedRecord?.poNo || ""}
+            onChange={() => {}}
+            disabled
           />
-          <LabeledInput 
-          label="Supplier Name" 
-          value={selectedRecord?.supplierName || ""} 
-          onChange={() => { }} 
-          disabled 
+          <LabeledInput
+            label="Supplier Name"
+            value={selectedRecord?.supplierName || ""}
+            onChange={() => {}}
+            disabled
           />
 
           <LabeledInput
@@ -790,7 +930,10 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
             placeholder="e.g. MH-04-AB-1234"
             value={formData.vehicleNo}
             onChange={(e) =>
-              setFormData({ ...formData, vehicleNo: e.target.value.toUpperCase() })
+              setFormData({
+                ...formData,
+                vehicleNo: e.target.value.toUpperCase(),
+              })
             }
             required
           />
@@ -798,7 +941,9 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
             label="Driver Name"
             placeholder="Enter driver name"
             value={formData.driverName}
-            onChange={(e) => setFormData({ ...formData, driverName: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, driverName: e.target.value })
+            }
             required
           />
 
@@ -843,95 +988,90 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
             </p>
           </div> */}
 
-
           <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Attachment File
-  </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Attachment File
+            </label>
 
-  <div className="flex items-center gap-2">
-    {/* Paste / Click area */}
-    <div
-      ref={pasteBoxRef}
-      tabIndex={0}
-      onClick={() => pasteBoxRef.current?.focus()} // Single click → focus to allow paste
-      onDoubleClick={() => fileInputRef.current?.click()} // Double click → open file picker
-      onPaste={(e) => {
-        e.preventDefault();
-        const items = e.clipboardData.items;
+            <div className="flex items-center gap-2">
+              {/* Paste / Click area */}
+              <div
+                ref={pasteBoxRef}
+                tabIndex={0}
+                onClick={() => pasteBoxRef.current?.focus()} // Single click → focus to allow paste
+                onDoubleClick={() => fileInputRef.current?.click()} // Double click → open file picker
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const items = e.clipboardData.items;
 
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.includes("image")) {
-            const file = items[i].getAsFile();
-            if (file) setFormData({ ...formData, attachment: file });
-          }
-        }
-      }}
-      className="flex-1 cursor-pointer flex items-center justify-center gap-2
+                  for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.includes("image")) {
+                      const file = items[i].getAsFile();
+                      if (file) setFormData({ ...formData, attachment: file });
+                    }
+                  }
+                }}
+                className="flex-1 cursor-pointer flex items-center justify-center gap-2
                  border-2 border-dashed border-gray-300 rounded-md p-3
                  hover:border-blue-500 transition-colors focus:outline-none"
-    >
-      <Upload className="w-4 h-4 text-gray-500" />
+              >
+                <Upload className="w-4 h-4 text-gray-500" />
 
-      <span className="text-sm text-gray-600 text-center">
-        {formData.attachment
-          ? formData.attachment.name
-          : "Single click → Paste screenshot | Double click → Upload file"}
-      </span>
+                <span className="text-sm text-gray-600 text-center">
+                  {formData.attachment
+                    ? formData.attachment.name
+                    : "Single click → Paste screenshot | Double click → Upload file"}
+                </span>
 
-      {/* hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        hidden
-        accept="image/*,.pdf,.doc,.docx"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) setFormData({ ...formData, attachment: file });
-          // Reset input to allow re-selection of same file
-          e.target.value = "";
-        }}
-      />
-    </div>
+                {/* hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  accept="image/*,.pdf,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setFormData({ ...formData, attachment: file });
+                    // Reset input to allow re-selection of same file
+                    e.target.value = "";
+                  }}
+                />
+              </div>
 
-    {/* Attachment Preview + Remove */}
-    {formData.attachment && (
-      <div className="relative flex items-center gap-2">
-        {/* Remove button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setFormData({ ...formData, attachment: null });
-          }}
-          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
-        >
-          ✕
-        </button>
+              {/* Attachment Preview + Remove */}
+              {formData.attachment && (
+                <div className="relative flex items-center gap-2">
+                  {/* Remove button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFormData({ ...formData, attachment: null });
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
+                  >
+                    ✕
+                  </button>
 
-        {/* Preview */}
-        {formData.attachment.type.startsWith("image/") ? (
-          <img
-            src={URL.createObjectURL(formData.attachment)}
-            className="h-12 w-12 rounded object-cover"
-            alt="Preview"
-          />
-        ) : (
-          <span className="text-xs text-gray-700">
-            {formData.attachment.name}
-          </span>
-        )}
-      </div>
-    )}
-  </div>
+                  {/* Preview */}
+                  {formData.attachment.type.startsWith("image/") ? (
+                    <img
+                      src={URL.createObjectURL(formData.attachment)}
+                      className="h-12 w-12 rounded object-cover"
+                      alt="Preview"
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-700">
+                      {formData.attachment.name}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
 
-  <p className="text-xs text-gray-500 mt-1">
-    Single click → Paste screenshot | Double click → Upload file
-  </p>
-</div>
-
-
-
-
+            <p className="text-xs text-gray-500 mt-1">
+              Single click → Paste screenshot | Double click → Upload file
+            </p>
+          </div>
 
           <div className="flex flex-col gap-3 sm:flex-row pt-2">
             <Button
@@ -970,7 +1110,8 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
         <form onSubmit={handleCancel} className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
-              Are you sure you want to cancel this Gate Entry record? This action cannot be undone.
+              Are you sure you want to cancel this Gate Entry record? This
+              action cannot be undone.
             </p>
           </div>
 
@@ -980,13 +1121,19 @@ const pasteBoxRef = useRef<HTMLDivElement | null>(null);
                 <span className="text-gray-500">PO No:</span>
                 <span className="font-medium">{recordToCancel.poNo}</span>
                 <span className="text-gray-500">Indent No:</span>
-                <span className="font-medium">{recordToCancel.indentNumber}</span>
+                <span className="font-medium">
+                  {recordToCancel.indentNumber}
+                </span>
                 <span className="text-gray-500">Product No:</span>
                 <span className="font-medium">{recordToCancel.productNo}</span>
                 <span className="text-gray-500">Supplier:</span>
-                <span className="font-medium">{recordToCancel.supplierName}</span>
+                <span className="font-medium">
+                  {recordToCancel.supplierName}
+                </span>
                 <span className="text-gray-500">Material:</span>
-                <span className="font-medium">{recordToCancel.materialName}</span>
+                <span className="font-medium">
+                  {recordToCancel.materialName}
+                </span>
                 <span className="text-gray-500">Quantity:</span>
                 <span className="font-medium">{recordToCancel.quantity}</span>
                 <span className="text-gray-500">Rate:</span>

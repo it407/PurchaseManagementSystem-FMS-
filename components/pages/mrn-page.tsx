@@ -420,9 +420,10 @@ const filteredHistory = filterRecords(history);
     ) : (
                 <>
                   {/* Desktop Table */}
-                  <div className="hidden md:block overflow-x-auto">
+                  {/* <div className="hidden md:block overflow-x-auto"> */}
+                  <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-50 sticky top-0 z-20">
                         <tr>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Action
@@ -529,9 +530,11 @@ const filteredHistory = filterRecords(history);
     ) : (
                 <>
                   {/* Desktop Table */}
-                  <div className="hidden md:block overflow-x-auto">
+                  {/* <div className="hidden md:block overflow-x-auto"> */}
+                  <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
+
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-50 sticky top-0 z-20">
                         <tr>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Indent No.

@@ -56,6 +56,7 @@ interface BillEntryRecord {
   billNo: string;
   amount: number;
   enteredBy?: string;
+  plannedDate: string;
   entryDate?: string;
   planned9?: string;
   actual9?: string;
@@ -182,6 +183,42 @@ export function BillEntryPage() {
   };
 
 
+  const formatOnlyDate = (value: any) => {
+  if (!value) return "";
+
+  let d: Date | null = null;
+
+  // Case 1: MM/DD/YYYY, hh:mm:ss AM/PM
+  if (value.includes(",")) {
+    const temp = new Date(value);
+    if (!isNaN(temp.getTime())) {
+      d = temp;
+    }
+  }
+
+  // Case 2: DD/MM/YYYY HH:mm:ss
+  else if (value.includes("/")) {
+    const datePart = value.split(" ")[0]; // "26/12/2025"
+    const [day, month, year] = datePart.split("/");
+
+    if (day && month && year) {
+      return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+  }
+
+  // Final formatting
+  if (d) {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  return value;
+};
+
+
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -211,6 +248,7 @@ export function BillEntryPage() {
               poNo: row[5] || `PO-${i + 1}`,
               billNo: row[49] || 0, // Column AU
               supplierName: row[3] || "Supplier",
+              plannedDate: formatOnlyDate(row[52]),
               materialName: row[4] || "Material",
               quantity: row[6] || "0",
               rate: row[7] || 0,
@@ -228,6 +266,7 @@ export function BillEntryPage() {
               billNo: row[49] || `BILL-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AU
               supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
+              plannedDate: formatOnlyDate(row[52]),
               quantity: row[6] || "0",
               rate: row[7] || 0,
               amount: parseFloat(row[50]) || 0, // Column K
@@ -426,12 +465,16 @@ const filteredHistory = filterRecords(history);
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
@@ -474,6 +517,7 @@ const filteredHistory = filterRecords(history);
                             </Button>
                           </div>
                         </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.plannedDate}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
@@ -507,6 +551,10 @@ const filteredHistory = filterRecords(history);
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                      <div>
+                        <p className="text-gray-500">Planned Date</p>
+                        <p className="font-medium text-gray-900">{record.plannedDate}</p>
+                      </div>
                       <div>
                         <p className="text-gray-500">Indent No.</p>
                         <p className="font-medium text-gray-900">{record.indentNumber}</p>
@@ -563,10 +611,14 @@ const filteredHistory = filterRecords(history);
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
                       </th>
@@ -594,6 +646,7 @@ const filteredHistory = filterRecords(history);
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {filteredHistory.map((record) => ( 
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.plannedDate}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
@@ -630,6 +683,10 @@ const filteredHistory = filterRecords(history);
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                      <div>
+                        <p className="text-gray-500">Planned Date</p>
+                        <p className="font-medium text-gray-900">{record.plannedDate}</p>
+                      </div>
                       <div>
                         <p className="text-gray-500">Indent No.</p>
                         <p className="font-medium text-gray-900">{record.indentNumber}</p>

@@ -52,6 +52,7 @@ interface Record {
   materialName: string;
   supplierName: string;
   quantity: string;
+  plannedDate: string;
   rate?: string;
   status: string;
   qcReportNo?: string;
@@ -80,6 +81,42 @@ export function QCPage() {
     approvalStatus: "Approved",
     qcReportNo: "", // Add this line
   });
+
+
+  const formatOnlyDate = (value: any) => {
+  if (!value) return "";
+
+  let d: Date | null = null;
+
+  // Case 1: MM/DD/YYYY, hh:mm:ss AM/PM
+  if (value.includes(",")) {
+    const temp = new Date(value);
+    if (!isNaN(temp.getTime())) {
+      d = temp;
+    }
+  }
+
+  // Case 2: DD/MM/YYYY HH:mm:ss
+  else if (value.includes("/")) {
+    const datePart = value.split(" ")[0]; // "26/12/2025"
+    const [day, month, year] = datePart.split("/");
+
+    if (day && month && year) {
+      return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+  }
+
+  // Final formatting
+  if (d) {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  return value;
+};
+
 
   // Fetch data from Google Sheets
   const fetchData = async () => {
@@ -115,6 +152,7 @@ export function QCPage() {
               supplierName: row[3] || "Supplier",
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
+              plannedDate: formatOnlyDate(row[35]),
               quantity: row[6] || "0",
               rate: row[7] || 0,
               status: "Verified",
@@ -135,6 +173,7 @@ export function QCPage() {
               supplierName: row[3] || "Supplier",
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
+              plannedDate: formatOnlyDate(row[35]),
               quantity: row[6] || "0",
               rate: row[7] || 0,
               qcReportNo:
@@ -458,12 +497,16 @@ export function QCPage() {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Action
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        planned Date
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
@@ -507,6 +550,9 @@ export function QCPage() {
                               Cancel
                             </Button>
                           </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
                           {record.indentNumber}
@@ -592,10 +638,14 @@ export function QCPage() {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* <div className="hidden md:block overflow-x-auto"> */}
+              <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Planned Date
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Indent No.
                       </th>
@@ -631,6 +681,9 @@ export function QCPage() {
                         key={record.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                          {record.plannedDate}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
                           {record.indentNumber}
                         </td>
