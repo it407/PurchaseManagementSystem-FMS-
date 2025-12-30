@@ -13,6 +13,7 @@ interface ProcurementRecord {
   id: string;
   poNo: string;
   indentNumber: string;
+  mrnNumber: string;
   productNo: string;
   supplierName: string;
   quantity: string;
@@ -84,6 +85,7 @@ export function MRNPage() {
   const [formData, setFormData] = useState({
     approvedBy: "",
     materialCondition: "OK",
+    mrnNumber: "",
   });
 
   const formatOnlyDate = (value: any) => {
@@ -155,6 +157,7 @@ export function MRNPage() {
               materialName: row[4] || "Material",
               supplierName: row[3] || "Supplier",
               plannedDate: formatOnlyDate(row[42]),
+              mrnNumber: row[62] || "",
               quantity: row[6] || "0",
               rate: row[7] || 0,
               rowIndex: i + 1,
@@ -177,6 +180,7 @@ export function MRNPage() {
               quantity: row[6] || "0",
               plannedDate: formatOnlyDate(row[42]),
               rate: row[7] || 0,
+              mrnNumber: row[62] || "",
               mrnNo:
                 row[40] ||
                 `MRN-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AO
@@ -204,7 +208,7 @@ export function MRNPage() {
 
   const handleMRN = (record: ProcurementRecord) => {
     setSelectedRecord(record);
-    setFormData({ approvedBy: "", materialCondition: "OK" });
+    setFormData({ approvedBy: "",mrnNumber:"", materialCondition: "OK" });
     setIsModalOpen(true);
   };
 
@@ -250,6 +254,7 @@ export function MRNPage() {
           // "AP": `MRN-${String(history.length + 1).padStart(3, "0")}`, // Column AO - MRN No
           AS: formData.materialCondition, // Column AP - Material Condition
           AT: formData.approvedBy, // Column AQ - Approved By
+          BK: formData.mrnNumber
         },
       };
 
@@ -674,6 +679,9 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
                             Material
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            MRN Number
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Condition
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -704,6 +712,9 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
                             </td>
                             <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                               {record.materialName}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.mrnNumber}
                             </td>
                             <td className="px-4 py-3">
                               <span
@@ -758,6 +769,10 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
                             <p className="font-medium">{record.materialName}</p>
                           </div>
                           <div>
+                            <p className="text-gray-500">MRN Number</p>
+                            <p className="font-medium">{record.mrnNumber}</p>
+                          </div>
+                          <div>
                             <p className="text-gray-500">Approved By</p>
                             <p className="font-medium text-xs">
                               {record.approvedBy}
@@ -801,6 +816,21 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
             onChange={() => {}}
             disabled
           />
+
+          <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    MRN Number
+  </label>
+  <Input
+    value={formData.mrnNumber}
+    onChange={(e) =>
+      setFormData({ ...formData, mrnNumber: e.target.value })
+    }
+    placeholder="Enter MRN Number"
+    required
+  />
+</div>
+          
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
