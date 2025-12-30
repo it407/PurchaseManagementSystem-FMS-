@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -17,6 +16,7 @@ interface ProcurementRecord {
   productNo: string;
   supplierName: string;
   quantity: string;
+  plannedDate: string;
   rate: string;
   materialName: string;
   mrnNo?: string;
@@ -72,17 +72,53 @@ export function MRNPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<ProcurementRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] =
+    useState<ProcurementRecord | null>(null);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [cancelForm, setCancelForm] = useState({
-    remark: ""
+    remark: "",
   });
-  const [recordToCancel, setRecordToCancel] = useState<ProcurementRecord | null>(null);
+  const [recordToCancel, setRecordToCancel] =
+    useState<ProcurementRecord | null>(null);
 
   const [formData, setFormData] = useState({
     approvedBy: "",
     materialCondition: "OK",
   });
+
+  const formatOnlyDate = (value: any) => {
+    if (!value) return "";
+
+    let d: Date | null = null;
+
+    // Case 1: MM/DD/YYYY, hh:mm:ss AM/PM
+    if (value.includes(",")) {
+      const temp = new Date(value);
+      if (!isNaN(temp.getTime())) {
+        d = temp;
+      }
+    }
+
+    // Case 2: DD/MM/YYYY HH:mm:ss
+    else if (value.includes("/")) {
+      const datePart = value.split(" ")[0]; // "26/12/2025"
+      const [day, month, year] = datePart.split("/");
+
+      if (day && month && year) {
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+      }
+    }
+
+    // Final formatting
+    if (d) {
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    return value;
+  };
 
   // Fetch data from Google Sheets
   const fetchData = async () => {
@@ -106,31 +142,44 @@ export function MRNPage() {
           const actual6 = row[43]; // Column AN
 
           // Check if Planned6 is not null and Actual6 is null for pending
-          if (planned6 && planned6.trim() !== "" && (!actual6 || actual6.trim() === "")) {
+          if (
+            planned6 &&
+            planned6.trim() !== "" &&
+            (!actual6 || actual6.trim() === "")
+          ) {
             pendingRecords.push({
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
-              supplierName: row[3] || "Supplier",  
+              supplierName: row[3] || "Supplier",
+              plannedDate: formatOnlyDate(row[42]),
               quantity: row[6] || "0",
               rate: row[7] || 0,
               rowIndex: i + 1,
             });
           }
           // Check if both Planned6 and Actual6 are not null for history
-          else if (planned6 && planned6.trim() !== "" && actual6 && actual6.trim() !== "") {
+          else if (
+            planned6 &&
+            planned6.trim() !== "" &&
+            actual6 &&
+            actual6.trim() !== ""
+          ) {
             historyRecords.push({
               id: `row-${i + 1}`,
               indentNumber: row[1] || "", // Column B: Indent Number
               productNo: row[2] || "", // Column C: Product No
               poNo: row[5] || `PO-${i + 1}`,
               materialName: row[4] || "Material",
-              supplierName: row[3] || "Supplier",  
+              supplierName: row[3] || "Supplier",
               quantity: row[6] || "0",
+              plannedDate: formatOnlyDate(row[42]),
               rate: row[7] || 0,
-              mrnNo: row[40] || `MRN-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AO
+              mrnNo:
+                row[40] ||
+                `MRN-${String(historyRecords.length + 1).padStart(3, "0")}`, // Column AO
               materialCondition: row[44] || "OK", // Column AP
               approvedBy: row[45] || "Manager", // Column AQ
               unloadingDate: row[42] || "", // Column AR
@@ -159,24 +208,22 @@ export function MRNPage() {
     setIsModalOpen(true);
   };
 
-
   const formatTimestamp = () => {
-  const d = new Date();
-  
-  let month = String(d.getMonth() + 1).padStart(2, '0'); // MM
-  let day = String(d.getDate()).padStart(2, '0');        // DD
-  let year = d.getFullYear();                            // YYYY
-  
-  let hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
-  
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12; // Convert 0 → 12
-  
-  return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
-};
+    const d = new Date();
 
+    let month = String(d.getMonth() + 1).padStart(2, "0"); // MM
+    let day = String(d.getDate()).padStart(2, "0"); // DD
+    let year = d.getFullYear(); // YYYY
+
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 0 → 12
+
+    return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,13 +233,11 @@ export function MRNPage() {
     try {
       // Get current date in dd/mm/yyyy format
       const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, "0");
+      const month = String(now.getMonth() + 1).padStart(2, "0");
       const year = now.getFullYear();
       // const timestamp = new Date().toLocaleString();
       const timestamp = formatTimestamp();
-
-
 
       // Prepare data for submission
       const submissionData = {
@@ -201,11 +246,11 @@ export function MRNPage() {
         sheetName: "FMS",
         rowIndex: selectedRecord.rowIndex,
         columnData: {
-          "AR": timestamp, // Column AN - Actual6 (current date)
+          AR: timestamp, // Column AN - Actual6 (current date)
           // "AP": `MRN-${String(history.length + 1).padStart(3, "0")}`, // Column AO - MRN No
-          "AS": formData.materialCondition, // Column AP - Material Condition
-          "AT": formData.approvedBy, // Column AQ - Approved By
-        }
+          AS: formData.materialCondition, // Column AP - Material Condition
+          AT: formData.approvedBy, // Column AQ - Approved By
+        },
       };
 
       // Submit to Google Sheets
@@ -228,7 +273,6 @@ export function MRNPage() {
         setSelectedRecord(null);
         setIsSubmitting(false);
       }, 1500);
-
     } catch (error) {
       console.error("Error submitting data:", error);
       setIsSubmitting(false);
@@ -237,7 +281,9 @@ export function MRNPage() {
 
   const generateCancelSerialNumber = async () => {
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec?sheet=Cancel&action=fetch"
+      );
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -245,20 +291,24 @@ export function MRNPage() {
         let highestNumber = 0;
         sheetData.forEach((row: any[]) => {
           const serialNumber = row[1];
-          if (serialNumber && typeof serialNumber === 'string' && serialNumber.startsWith('SN-')) {
-            const numberPart = parseInt(serialNumber.replace('SN-', ''));
+          if (
+            serialNumber &&
+            typeof serialNumber === "string" &&
+            serialNumber.startsWith("SN-")
+          ) {
+            const numberPart = parseInt(serialNumber.replace("SN-", ""));
             if (!isNaN(numberPart) && numberPart > highestNumber) {
               highestNumber = numberPart;
             }
           }
         });
         const nextNumber = highestNumber + 1;
-        return `SN-${String(nextNumber).padStart(3, '0')}`;
+        return `SN-${String(nextNumber).padStart(3, "0")}`;
       }
     } catch (error) {
       console.error("Error generating serial number:", error);
     }
-    return 'SN-001';
+    return "SN-001";
   };
 
   // Add this cancel handler function
@@ -282,22 +332,25 @@ export function MRNPage() {
         recordToCancel.quantity,
         recordToCancel.rate,
         "MRN Generation", // Stage
-        cancelForm.remark
+        cancelForm.remark,
       ];
 
       console.log("Submitting cancel data to Google Sheets:", rowData);
 
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          action: "insert",
-          sheetName: "Cancel",
-          rowData: JSON.stringify(rowData)
-        })
-      });
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbwbNemoTxYRwhjNd1l7DeKS5oc7XkopIlVwf9aqi7Z3ZvrmlGBQAv7ucGo_Fi9aY_uL/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            action: "insert",
+            sheetName: "Cancel",
+            rowData: JSON.stringify(rowData),
+          }),
+        }
+      );
 
       const result = await response.json();
 
@@ -329,27 +382,28 @@ export function MRNPage() {
   };
 
   // Add this state near other useState declarations
-const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-// Add this function to filter records based on search term
-const filterRecords = (records: ProcurementRecord[]) => {
-  if (!searchTerm.trim()) return records;
-  
-  const term = searchTerm.toLowerCase();
-  return records.filter(record =>
-    record.indentNumber?.toLowerCase().includes(term) ||
-    record.productNo?.toLowerCase().includes(term) ||
-    record.poNo?.toLowerCase().includes(term) ||
-    record.materialName?.toLowerCase().includes(term) ||
-    record.mrnNo?.toLowerCase().includes(term) ||
-    record.materialCondition?.toLowerCase().includes(term) ||
-    record.approvedBy?.toLowerCase().includes(term)
-  );
-};
+  // Add this function to filter records based on search term
+  const filterRecords = (records: ProcurementRecord[]) => {
+    if (!searchTerm.trim()) return records;
 
-// Update the filtered records in both tabs
-const filteredPending = filterRecords(pending);
-const filteredHistory = filterRecords(history);
+    const term = searchTerm.toLowerCase();
+    return records.filter(
+      (record) =>
+        record.indentNumber?.toLowerCase().includes(term) ||
+        record.productNo?.toLowerCase().includes(term) ||
+        record.poNo?.toLowerCase().includes(term) ||
+        record.materialName?.toLowerCase().includes(term) ||
+        record.mrnNo?.toLowerCase().includes(term) ||
+        record.materialCondition?.toLowerCase().includes(term) ||
+        record.approvedBy?.toLowerCase().includes(term)
+    );
+  };
+
+  // Update the filtered records in both tabs
+  const filteredPending = filterRecords(pending);
+  const filteredHistory = filterRecords(history);
 
   return (
     <div className="space-y-6 p-4 md:p-0">
@@ -362,40 +416,52 @@ const filteredHistory = filterRecords(history);
       <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setTab("pending")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "pending"
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "pending"
               ? "border-blue-600 text-blue-600"
               : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          }`}
         >
           Pending ({pending.length})
         </button>
         <button
           onClick={() => setTab("history")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === "history"
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            tab === "history"
               ? "border-blue-600 text-blue-600"
               : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
+          }`}
         >
           History ({history.length})
         </button>
       </div>
 
       <div className="flex justify-between items-center gap-4">
-  <div className="relative flex-1 max-w-md">
-    <Input
-      type="text"
-      placeholder={`Search in ${tab}...`}
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      className="pl-10"
-    />
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </div>
-  </div>
-</div>
+        <div className="relative flex-1 max-w-md">
+          <Input
+            type="text"
+            placeholder={`Search in ${tab}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              className="h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
 
       {loading ? (
         <div className="flex justify-center items-center p-8">
@@ -408,16 +474,22 @@ const filteredHistory = filterRecords(history);
           {tab === "pending" && (
             <Card className="overflow-hidden">
               {pending.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No pending MRN</p>
-        <p className="text-sm mt-1">All approved QC materials have MRN.</p>
-      </div>
-    ) : filteredPending.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No matching records found</p>
-        <p className="text-sm mt-1">Try adjusting your search terms.</p>
-      </div>
-    ) : (
+                <div className="p-8 text-center text-gray-500">
+                  <p className="text-lg font-medium">No pending MRN</p>
+                  <p className="text-sm mt-1">
+                    All approved QC materials have MRN.
+                  </p>
+                </div>
+              ) : filteredPending.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <p className="text-lg font-medium">
+                    No matching records found
+                  </p>
+                  <p className="text-sm mt-1">
+                    Try adjusting your search terms.
+                  </p>
+                </div>
+              ) : (
                 <>
                   {/* Desktop Table */}
                   {/* <div className="hidden md:block overflow-x-auto"> */}
@@ -427,6 +499,9 @@ const filteredHistory = filterRecords(history);
                         <tr>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Action
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Planned Date
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Indent No.
@@ -447,7 +522,10 @@ const filteredHistory = filterRecords(history);
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {filteredPending.map((record) => (
-                          <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                          <tr
+                            key={record.id}
+                            className="hover:bg-gray-50 transition-colors"
+                          >
                             <td className="px-4 py-3">
                               <div className="flex gap-2">
                                 <Button
@@ -465,11 +543,24 @@ const filteredHistory = filterRecords(history);
                                 </Button>
                               </div>
                             </td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.poNo}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.supplierName}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.materialName}</td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                              {record.plannedDate}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                              {record.indentNumber}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.productNo}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                              {record.poNo}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                              {record.supplierName}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.materialName}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -485,8 +576,12 @@ const filteredHistory = filterRecords(history);
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <p className="font-semibold text-gray-900">{record.poNo}</p>
-                            <p className="text-sm text-gray-600">{record.materialName}</p>
+                            <p className="font-semibold text-gray-900">
+                              {record.poNo}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {record.materialName}
+                            </p>
                           </div>
                           <span className="text-xs font-medium text-yellow-800 bg-yellow-100 px-2.5 py-0.5 rounded-full">
                             Pending
@@ -518,24 +613,32 @@ const filteredHistory = filterRecords(history);
           {tab === "history" && (
             <Card className="overflow-hidden">
               {history.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No MRN history</p>
-        <p className="text-sm mt-1">Generated MRNs will appear here.</p>
-      </div>
-    ) : filteredHistory.length === 0 ? (
-      <div className="p-8 text-center text-gray-500">
-        <p className="text-lg font-medium">No matching records found</p>
-        <p className="text-sm mt-1">Try adjusting your search terms.</p>
-      </div>
-    ) : (
+                <div className="p-8 text-center text-gray-500">
+                  <p className="text-lg font-medium">No MRN history</p>
+                  <p className="text-sm mt-1">
+                    Generated MRNs will appear here.
+                  </p>
+                </div>
+              ) : filteredHistory.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <p className="text-lg font-medium">
+                    No matching records found
+                  </p>
+                  <p className="text-sm mt-1">
+                    Try adjusting your search terms.
+                  </p>
+                </div>
+              ) : (
                 <>
                   {/* Desktop Table */}
                   {/* <div className="hidden md:block overflow-x-auto"> */}
                   <div className="hidden sm:block max-h-[500px] overflow-y-auto overflow-x-auto">
-
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50 sticky top-0 z-20">
                         <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Planned Date
+                          </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Indent No.
                           </th>
@@ -561,23 +664,42 @@ const filteredHistory = filterRecords(history);
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {history.map((record) => (
-                          <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{record.indentNumber}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.productNo}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.poNo}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.supplierName}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.materialName}</td>
+                          <tr
+                            key={record.id}
+                            className="hover:bg-gray-50 transition-colors"
+                          >
+                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                              {record.plannedDate}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                              {record.indentNumber}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.productNo}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.poNo}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.supplierName}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.materialName}
+                            </td>
                             <td className="px-4 py-3">
                               <span
-                                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${record.materialCondition === "OK"
+                                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                  record.materialCondition === "OK"
                                     ? "bg-green-100 text-green-800"
                                     : "bg-red-100 text-red-800"
-                                  }`}
+                                }`}
                               >
                                 {record.materialCondition}
                               </span>
                             </td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{record.approvedBy}</td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.approvedBy}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -593,14 +715,19 @@ const filteredHistory = filterRecords(history);
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <p className="font-semibold text-gray-900">{record.mrnNo}</p>
-                            <p className="text-sm text-gray-600">{record.poNo}</p>
+                            <p className="font-semibold text-gray-900">
+                              {record.mrnNo}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {record.poNo}
+                            </p>
                           </div>
                           <span
-                            className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${record.materialCondition === "OK"
+                            className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                              record.materialCondition === "OK"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
-                              }`}
+                            }`}
                           >
                             {record.materialCondition}
                           </span>
@@ -613,7 +740,9 @@ const filteredHistory = filterRecords(history);
                           </div>
                           <div>
                             <p className="text-gray-500">Approved By</p>
-                            <p className="font-medium text-xs">{record.approvedBy}</p>
+                            <p className="font-medium text-xs">
+                              {record.approvedBy}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -635,9 +764,24 @@ const filteredHistory = filterRecords(history);
         backdropClassName="bg-black/30"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <LabeledInput label="PO No." value={selectedRecord?.poNo || ""} onChange={() => { }} disabled />
-          <LabeledInput label="Supplier Name" value={selectedRecord?.supplierName || ""} onChange={() => { }} disabled />
-          <LabeledInput label="Material" value={selectedRecord?.materialName || ""} onChange={() => { }} disabled />
+          <LabeledInput
+            label="PO No."
+            value={selectedRecord?.poNo || ""}
+            onChange={() => {}}
+            disabled
+          />
+          <LabeledInput
+            label="Supplier Name"
+            value={selectedRecord?.supplierName || ""}
+            onChange={() => {}}
+            disabled
+          />
+          <LabeledInput
+            label="Material"
+            value={selectedRecord?.materialName || ""}
+            onChange={() => {}}
+            disabled
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -645,7 +789,9 @@ const filteredHistory = filterRecords(history);
             </label>
             <select
               value={formData.approvedBy}
-              onChange={(e) => setFormData({ ...formData, approvedBy: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, approvedBy: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
@@ -661,7 +807,9 @@ const filteredHistory = filterRecords(history);
             </label>
             <select
               value={formData.materialCondition}
-              onChange={(e) => setFormData({ ...formData, materialCondition: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, materialCondition: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="OK">OK</option>
@@ -706,7 +854,8 @@ const filteredHistory = filterRecords(history);
         <form onSubmit={handleCancel} className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
-              Are you sure you want to cancel this MRN generation record? This action cannot be undone.
+              Are you sure you want to cancel this MRN generation record? This
+              action cannot be undone.
             </p>
           </div>
 
@@ -716,11 +865,15 @@ const filteredHistory = filterRecords(history);
                 <span className="text-gray-500">PO No:</span>
                 <span className="font-medium">{recordToCancel.poNo}</span>
                 <span className="text-gray-500">Indent No:</span>
-                <span className="font-medium">{recordToCancel.indentNumber}</span>
+                <span className="font-medium">
+                  {recordToCancel.indentNumber}
+                </span>
                 <span className="text-gray-500">Product No:</span>
                 <span className="font-medium">{recordToCancel.productNo}</span>
                 <span className="text-gray-500">Material:</span>
-                <span className="font-medium">{recordToCancel.materialName}</span>
+                <span className="font-medium">
+                  {recordToCancel.materialName}
+                </span>
               </div>
             </div>
           )}

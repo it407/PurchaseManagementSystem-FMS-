@@ -163,7 +163,7 @@ export function MaterialReceivingPage() {
               supplierName: row[3] || "Supplier",
               materialName: row[4] || "Material",
               expectedDate: row[18] || "",
-              plannedDate: formatOnlyDate(row[16]),
+              plannedDate: formatOnlyDate(row[21]),
               quantity: row[6] || "0",
               rate: row[7] || 0,
               planned2: planned2,
@@ -187,7 +187,7 @@ export function MaterialReceivingPage() {
               materialName: row[4] || "Material",
               quantity: row[5] || "0",
               expectedDate: row[18] || "",
-              plannedDate: formatOnlyDate(row[16]),
+              plannedDate: formatOnlyDate(row[21]),
               planned2: planned2,
               actual1: actual1,
               gateEntryNo:
@@ -591,9 +591,9 @@ export function MaterialReceivingPage() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Quantity
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Expected Date
-                      </th>
+                      </th> */}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -640,9 +640,9 @@ export function MaterialReceivingPage() {
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {record.quantity}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                        {/* <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {record.expectedDate}
-                        </td>
+                        </td> */}
                       </tr>
                     ))}
                   </tbody>
@@ -692,8 +692,8 @@ export function MaterialReceivingPage() {
                         <p className="font-medium">{record.quantity}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Expected Date</p>
-                        <p className="font-medium">{record.expectedDate}</p>
+                        {/* <p className="text-gray-500">Expected Date</p>
+                        <p className="font-medium">{record.expectedDate}</p> */}
                       </div>
                     </div>
 
@@ -770,9 +770,9 @@ export function MaterialReceivingPage() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Expected Date
-                      </th>
+                      </th> */}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -825,9 +825,9 @@ export function MaterialReceivingPage() {
                             {record.status}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                        {/* <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {record.expectedDate}
-                        </td>
+                        </td> */}
                       </tr>
                     ))}
                   </tbody>
