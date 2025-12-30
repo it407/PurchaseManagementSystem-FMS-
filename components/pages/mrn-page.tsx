@@ -673,14 +673,15 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
                             PO No.
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            MRN Number
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Supplier Name
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Material
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            MRN Number
-                          </th>
+                          
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Condition
                           </th>
@@ -708,14 +709,15 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
                               {record.poNo}
                             </td>
                             <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                              {record.mrnNumber}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                               {record.supplierName}
                             </td>
                             <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                               {record.materialName}
                             </td>
-                            <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                              {record.mrnNumber}
-                            </td>
+                            
                             <td className="px-4 py-3">
                               <span
                                 className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
