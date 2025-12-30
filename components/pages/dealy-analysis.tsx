@@ -149,7 +149,6 @@ const DelayAnalysis = () => {
           // Find all "Time Delay" columns manually (there are multiple)
           // let timeDelayIndices = [];
           let timeDelayIndices: number[] = [];
-          
 
           headers.forEach((header, idx) => {
             if (header === "Time Delay" || header === "time delay") {
@@ -618,251 +617,81 @@ const DelayAnalysis = () => {
     <div className=" p-0">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg  p-0 md:p-4 mb-4">
-          {/* <h1 className="text-xl md:text-2xl font-bold text-blue-600 mb-4 md:mb-6 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 md:w-6 md:h-6" />
-            Delay Analysis Dashboard
-          </h1> */}
-
-          {/* Filter Buttons - 2 filters per row on mobile */}
-          {/* <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
-            
+          <div className="flex items-center gap-2 mb-2 overflow-x-auto whitespace-nowrap">
             <button
-              onClick={() => {
-                setFilterType("today");
-                setShowMonthDropdown(false);
-                setShowSixMonthDropdown(false);
-                setShowYearDropdown(false);
-              }}
-              className={`px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors text-center ${
+              onClick={() => setFilterType("today")}
+              className={`px-2 py-1 text-xs rounded ${
                 filterType === "today"
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-600"
               }`}
             >
               Today
             </button>
 
-            
             <button
-              onClick={() => {
-                setFilterType("last7days");
-                setShowMonthDropdown(false);
-                setShowSixMonthDropdown(false);
-                setShowYearDropdown(false);
-              }}
-              className={`px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors text-center ${
+              onClick={() => setFilterType("last7days")}
+              className={`px-2 py-1 text-xs rounded ${
                 filterType === "last7days"
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-600"
               }`}
             >
-              Last 7 Days
+              7 Days
             </button>
 
-            
-            <div className="relative min-w-[100px]">
-              <button
-                onClick={() => {
-                  setShowMonthDropdown(!showMonthDropdown);
-                  setShowSixMonthDropdown(false);
-                  setShowYearDropdown(false);
-                }}
-                className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
-                  filterType === "month"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <span className="truncate">
-                  {filterType === "month" && selectedMonth
-                    ? getMonthOptions().find(
-                        (opt) => opt.value === selectedMonth
-                      )?.label || "Month"
-                    : "Month"}
-                </span>
-                <ChevronDown size={14} className="flex-shrink-0" />
-              </button>
+            {/* Month */}
+            <select
+              className="px-2 py-1 text-xs bg-gray-100 rounded w-auto"
+              value={selectedMonth}
+              onChange={(e) => {
+                setFilterType("month");
+                setSelectedMonth(e.target.value);
+              }}
+            >
+              <option value="">Month</option>
+              {getMonthOptions().map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
 
-              {showMonthDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto min-w-[140px]">
-                  {getMonthOptions().map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setFilterType("month");
-                        setSelectedMonth(option.value);
-                        setShowMonthDropdown(false);
-                      }}
-                      className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* 6 Months */}
+            <select
+              className="px-2 py-1 text-xs bg-gray-100 rounded"
+              value={selectedSixMonth}
+              onChange={(e) => {
+                setFilterType("sixmonth");
+                setSelectedSixMonth(e.target.value);
+              }}
+            >
+              <option value="">6 Months</option>
+              {getSixMonthOptions().map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
 
-            
-            <div className="relative min-w-[120px]">
-              <button
-                onClick={() => {
-                  setShowSixMonthDropdown(!showSixMonthDropdown);
-                  setShowMonthDropdown(false);
-                  setShowYearDropdown(false);
-                }}
-                className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
-                  filterType === "sixmonth"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <span className="truncate">
-                  {filterType === "sixmonth" && selectedSixMonth
-                    ? getSixMonthOptions().find(
-                        (opt) => opt.value === selectedSixMonth
-                      )?.label || "6 Months"
-                    : "6 Months"}
-                </span>
-                <ChevronDown size={14} className="flex-shrink-0" />
-              </button>
+            {/* Year */}
+            <select
+              className="px-2 py-1 text-xs bg-gray-100 rounded"
+              value={selectedYear}
+              onChange={(e) => {
+                setFilterType("year");
+                setSelectedYear(e.target.value);
+              }}
+            >
+              <option value="">Year</option>
+              {getYearOptions().map((y) => (
+                <option key={y.value} value={y.value}>
+                  {y.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              {showSixMonthDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[160px]">
-                  {getSixMonthOptions().map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setFilterType("sixmonth");
-                        setSelectedSixMonth(option.value);
-                        setShowSixMonthDropdown(false);
-                      }}
-                      className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            
-            <div className="relative min-w-[100px]">
-              <button
-                onClick={() => {
-                  setShowYearDropdown(!showYearDropdown);
-                  setShowMonthDropdown(false);
-                  setShowSixMonthDropdown(false);
-                }}
-                className={`w-full px-3 py-2 text-sm md:text-base rounded-lg font-medium transition-colors flex items-center justify-center gap-1 ${
-                  filterType === "year"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <span className="truncate">
-                  {filterType === "year" && selectedYear
-                    ? getYearOptions().find((opt) => opt.value === selectedYear)
-                        ?.label || "Year"
-                    : "Year"}
-                </span>
-                <ChevronDown size={14} className="flex-shrink-0" />
-              </button>
-
-              {showYearDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
-                  {getYearOptions().map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setFilterType("year");
-                        setSelectedYear(option.value);
-                        setFilterYear(option.value);
-                        setShowYearDropdown(false);
-                      }}
-                      className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 whitespace-nowrap"
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div> */}
-
-
-
-          <div className="flex items-center gap-2 mb-2 overflow-x-auto whitespace-nowrap">
-  
-  <button
-    onClick={() => setFilterType('today')}
-    className={`px-2 py-1 text-xs rounded ${
-      filterType === 'today'
-        ? 'bg-blue-600 text-white'
-        : 'bg-gray-100 text-gray-600'
-    }`}
-  >
-    Today
-  </button>
-
-  <button
-    onClick={() => setFilterType('last7days')}
-    className={`px-2 py-1 text-xs rounded ${
-      filterType === 'last7days'
-        ? 'bg-blue-600 text-white'
-        : 'bg-gray-100 text-gray-600'
-    }`}
-  >
-    7 Days
-  </button>
-
-  {/* Month */}
-  <select
-  className="px-2 py-1 text-xs bg-gray-100 rounded w-auto"
-  value={selectedMonth}
-  onChange={(e) => {
-    setFilterType('month');
-    setSelectedMonth(e.target.value);
-  }}
->
-  <option value="">Month</option>
-  {getMonthOptions().map(m => (
-    <option key={m.value} value={m.value}>{m.label}</option>
-  ))}
-</select>
-
-  {/* 6 Months */}
-  <select
-    className="px-2 py-1 text-xs bg-gray-100 rounded"
-    value={selectedSixMonth}
-    onChange={(e) => {
-      setFilterType('sixmonth');
-      setSelectedSixMonth(e.target.value);
-    }}
-  >
-    <option value="">6 Months</option>
-    {getSixMonthOptions().map(m => (
-      <option key={m.value} value={m.value}>{m.label}</option>
-    ))}
-  </select>
-
-  {/* Year */}
-  <select
-    className="px-2 py-1 text-xs bg-gray-100 rounded"
-    value={selectedYear}
-    onChange={(e) => {
-      setFilterType('year');
-      setSelectedYear(e.target.value);
-    }}
-  >
-    <option value="">Year</option>
-    {getYearOptions().map(y => (
-      <option key={y.value} value={y.value}>{y.label}</option>
-    ))}
-  </select>
-</div>
-
-
-          
           <div className="mb-4 text-sm text-gray-600 text-center md:text-left">
             Current Filter:{" "}
             <span className="font-semibold">
@@ -885,73 +714,33 @@ const DelayAnalysis = () => {
               <div className="text-gray-500">Loading data...</div>
             </div>
           ) : (
-            // <div className="h-80 md:h-96">
-            //   <ResponsiveContainer width="100%" height="100%">
-            //     <BarChart
-            //       data={filteredData}
-            //       margin={{ top: 20, right: 30, left: 0, bottom: 40 }}
-            //     >
-            //       <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            //       <XAxis
-            //         dataKey="name"
-            //         angle={-45}
-            //         textAnchor="end"
-            //         height={80}
-            //         interval={0}
-            //         fontSize={12}
-            //         tick={{ fontSize: 12 }}
-            //       />
-            //       <YAxis fontSize={12} />
-            //       <Tooltip
-            //         contentStyle={{
-            //           backgroundColor: "white",
-            //           border: "1px solid #e5e7eb",
-            //           borderRadius: "6px",
-            //           fontSize: "12px",
-            //         }}
-            //         formatter={(value) => [value, "Delay Count"]}
-            //       />
-            //       <Bar
-            //         dataKey="value"
-            //         radius={[4, 4, 0, 0]}
-            //         animationDuration={1000}
-            //       >
-            //         {filteredData.map((entry, index) => (
-            //           <Cell key={`cell-${index}`} fill={entry.color} />
-            //         ))}
-            //       </Bar>
-            //     </BarChart>
-            //   </ResponsiveContainer>
-            // </div>
-
+          
 
             <div className="h-40">
-  <ResponsiveContainer width="100%" height="100%">
-    <BarChart
-      data={filteredData}
-      margin={{ top: 10, right: 0, left: 0, bottom: 40 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis
-        dataKey="name"
-        angle={-35}
-        textAnchor="end"
-        fontSize={10}
-        height={60}
-        interval={0}
-        
-      />
-      <YAxis fontSize={10} />
-      <Tooltip />
-      <Bar dataKey="value" radius={[3, 3, 0, 0]}>
-        {filteredData.map((e, i) => (
-          <Cell key={i} fill={e.color} />
-        ))}
-      </Bar>
-    </BarChart>
-  </ResponsiveContainer>
-</div>
-
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={filteredData}
+                  margin={{ top: 10, right: 0, left: 0, bottom: 40 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-35}
+                    textAnchor="end"
+                    fontSize={10}
+                    height={60}
+                    interval={0}
+                  />
+                  <YAxis fontSize={10} />
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+                    {filteredData.map((e, i) => (
+                      <Cell key={i} fill={e.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           )}
         </div>
       </div>

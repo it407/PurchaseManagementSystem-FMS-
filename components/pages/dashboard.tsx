@@ -459,90 +459,6 @@ export function Dashboard() {
   const userRole = user?.role || "user";
   const userName = user?.name || "User";
 
-  // const stats = [
-  //   {
-  //     label: "Total PO",
-  //     value: dashboardData?.totalPO || 0,
-  //     pending: 0, // PO me pending nahi hota
-  //     delay: 0, // PO me delay nahi hota
-  //     icon: Package,
-  //     color: "text-blue-600",
-  //     bg: "bg-blue-50",
-  //   },
-  //   {
-  //     label: "Total Issue PO",
-  //     value: dashboardData?.totalIssuePO || 0,
-  //     pending: dashboardData?.pendingIssuePO || 0,
-  //     delay: dashboardData?.delayIssuePO || 0,
-  //     icon: FileText,
-  //     color: "text-green-600",
-  //     bg: "bg-green-50",
-  //   },
-  //   {
-  //     label: "Total Follow Up",
-  //     value: dashboardData?.totalFollowUp || 0,
-  //     pending: dashboardData?.pendingFollowUp || 0,
-  //     delay: dashboardData?.delayFollowUp || 0,
-  //     icon: Clock,
-  //     color: "text-purple-600",
-  //     bg: "bg-purple-50",
-  //   },
-  //   {
-  //     label: "Total Gate Entry",
-  //     value: dashboardData?.totalGateEntry || 0,
-  //     pending: dashboardData?.pendingGateEntry || 0,
-  //     delay: dashboardData?.delayGateEntry || 0,
-  //     icon: Package,
-  //     color: "text-orange-600",
-  //     bg: "bg-orange-50",
-  //   },
-  //   {
-  //     label: "Total Weighment",
-  //     value: dashboardData?.totalWeighment || 0,
-  //     pending: dashboardData?.pendingWeighment || 0,
-  //     delay: dashboardData?.delayWeighment || 0,
-  //     icon: BarChart3,
-  //     color: "text-indigo-600",
-  //     bg: "bg-indigo-50",
-  //   },
-  //   {
-  //     label: "Total Quality Check",
-  //     value: dashboardData?.totalQC || 0,
-  //     pending: dashboardData?.pendingQC || 0,
-  //     delay: dashboardData?.delayQC || 0,
-  //     icon: AlertCircle,
-  //     color: "text-amber-600",
-  //     bg: "bg-amber-50",
-  //   },
-  //   {
-  //     label: "Total Material Unloading",
-  //     value: dashboardData?.totalMaterialUnloading || 0,
-  //     pending: dashboardData?.pendingMaterialUnloading || 0,
-  //     delay: dashboardData?.delayMaterialUnloading || 0,
-  //     icon: Package,
-  //     color: "text-cyan-600",
-  //     bg: "bg-cyan-50",
-  //   },
-  //   {
-  //     label: "Total Submit Bill",
-  //     value: dashboardData?.totalSubmitBill || 0,
-  //     pending: dashboardData?.pendingSubmitBill || 0,
-  //     delay: dashboardData?.delaySubmitBill || 0,
-  //     icon: FileText,
-  //     color: "text-red-600",
-  //     bg: "bg-red-50",
-  //   },
-  //   {
-  //     label: "Total Bill Entry ERP",
-  //     value: dashboardData?.totalBillEntryERP || 0,
-  //     pending: dashboardData?.pendingBillEntryERP || 0,
-  //     delay: dashboardData?.delayBillEntryERP || 0,
-  //     icon: FileText,
-  //     color: "text-pink-600",
-  //     bg: "bg-pink-50",
-  //   }
-  // ];
-
   const stats = [
     // {
     //   label: "Total PO",
@@ -740,41 +656,27 @@ export function Dashboard() {
 
       {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"> */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
         {stats.map((stat, i) => (
-      //     <Card
-      //       key={i}
-      //       className="border border-gray-200 bg-white shadow-sm rounded-2xl transition-all duration-200 
-      // h-24 sm:h-28 
-      // flex flex-col justify-between relative"
-      //     >
-      <Card
-  className="border border-gray-200 bg-white shadow-sm rounded-xl
+          <Card
+            className="border border-gray-200 bg-white shadow-sm rounded-xl
   h-32 sm:h-28
   pt-6 sm:pt-2
   px-3 pb-3 sm:p-2
   flex flex-col justify-between relative"
->
-
-
-            {/* Amount Badge */}
-            {/* {stat.amount > 0 && (
-              <div className="absolute top-2 right-2 text-xs font-semibold text-gray-700">
-                {stat.amount.toLocaleString("en-IN")}
-              </div>
-            )} */}
+          >
+           
             {stat.amount > 0 && (
-  <div className="
+              <div
+                className="
     absolute top-2 right-2
     bg-gray-100 text-gray-700
     text-[11px] px-2 py-0.5 rounded-full
     sm:bg-transparent sm:px-0 sm:text-xs sm:font-bold
-  ">
-    ₹ {stat.amount.toLocaleString("en-IN")}
-  </div>
-)}
-
-
+  "
+              >
+                ₹ {stat.amount.toLocaleString("en-IN")}
+              </div>
+            )}
 
             <div className="p-2 flex flex-col justify-between h-full">
               {/* ICON + TITLE + VALUE */}
@@ -807,17 +709,99 @@ export function Dashboard() {
         ))}
       </div>
 
-      {/* Charts Section */}
-      {/* <div className="grid gap-3 lg:grid-cols-2">
-        <Card className="p-3 border-0 shadow-sm">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Total Tasks Distribution
-          </h3>
-          <div className="h-56 sm:h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
+    
+
+      {/* Charts + Delay Analysis (ONE ROW) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        {/* ================= PIE CHART ================= */}
+        <div className="lg:col-span-3">
+          <Card className="p-3 border-0 shadow-sm h-72">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Total Tasks Distribution
+            </h3>
+
+            {/* ⬇️ SAME OLD PIE CHART (NO CHANGE) */}
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: "PO", value: dashboardData?.totalPO || 0 },
+                      {
+                        name: "Issue PO",
+                        value: dashboardData?.totalIssuePO || 0,
+                      },
+                      {
+                        name: "Follow Up",
+                        value: dashboardData?.totalFollowUp || 0,
+                      },
+                      {
+                        name: "Gate Entry",
+                        value: dashboardData?.totalGateEntry || 0,
+                      },
+                      {
+                        name: "Weighment",
+                        value: dashboardData?.totalWeighment || 0,
+                      },
+                      { name: "QC", value: dashboardData?.totalQC || 0 },
+                      {
+                        name: "Material Unloading",
+                        value: dashboardData?.totalMaterialUnloading || 0,
+                      },
+                      {
+                        name: "Submit Bill",
+                        value: dashboardData?.totalSubmitBill || 0,
+                      },
+                      {
+                        name: "Bill Entry ERP",
+                        value: dashboardData?.totalBillEntryERP || 0,
+                      },
+                    ]}
+                    cx="50%"
+                    cy="42%"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                    outerRadius={50}
+                    dataKey="value"
+                    className="text-[10px]"
+                  >
+                    {[
+                      "#3b82f6",
+                      "#10b981",
+                      "#8b5cf6",
+                      "#f59e0b",
+                      "#6366f1",
+                      "#f59e0b",
+                      "#06b6d4",
+                      "#ef4444",
+                      "#ec4899",
+                    ].map((color, index) => (
+                      <Cell key={index} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  {/* <Legend wrapperStyle={{ fontSize: "10px" }} iconSize={8} /> */}
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </div>
+
+        {/* ================= PROGRESS OVERVIEW ================= */}
+        <div className="lg:col-span-4">
+          <Card className="p-3 border-0 shadow-sm h-72">
+            <h3 className="text-sm font-semibold text-gray-900 -mb-6 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Progress Overview
+            </h3>
+
+            {/* ⬇️ SAME OLD BAR CHART (NO CHANGE) */}
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
                   data={[
                     { name: "PO", value: dashboardData?.totalPO || 0 },
                     {
@@ -850,272 +834,54 @@ export function Dashboard() {
                       value: dashboardData?.totalBillEntryERP || 0,
                     },
                   ]}
-                  cx="50%"
-                  cy="42%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={60}
-                  fill="#8884d8"
-                  dataKey="value"
-                  className="text-[10px] sm:text-xs"
+                  // margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 20, right: 10, left: 0, bottom: 12 }}
                 >
-                  {[
-                    "#3b82f6", // blue-500
-                    "#10b981", // green-500
-                    "#8b5cf6", // purple-500
-                    "#f59e0b", // orange-500
-                    "#6366f1", // indigo-500
-                    "#f59e0b", // amber-500
-                    "#06b6d4", // cyan-500
-                    "#ef4444", // red-500
-                    "#ec4899", // pink-500
-                  ].map((color, index) => (
-                    <Cell key={`cell-${index}`} fill={color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [value, "Count"]}
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                  }}
-                />
-                <Legend
-                  wrapperStyle={{
-                    fontSize: "10px",
-                    paddingTop: "8px",
-                  }}
-                  iconSize={8}
-                  className="sm:text-xs"
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    fontSize={10}
+                    angle={-35}
+                    textAnchor="end"
+                    interval={0}
+                    height={50}
+                  />
+                  <YAxis fontSize={10} />
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {[
+                      "#3b82f6",
+                      "#10b981",
+                      "#8b5cf6",
+                      "#f59e0b",
+                      "#6366f1",
+                      "#f59e0b",
+                      "#06b6d4",
+                      "#ef4444",
+                      "#ec4899",
+                    ].map((color, index) => (
+                      <Cell key={index} fill={color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </div>
 
-        <Card className="p-3 border-0 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Progress Overview
-          </h3>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={[
-                  { name: "PO", value: dashboardData?.totalPO || 0 },
-                  { name: "Issue PO", value: dashboardData?.totalIssuePO || 0 },
-                  {
-                    name: "Follow Up",
-                    value: dashboardData?.totalFollowUp || 0,
-                  },
-                  {
-                    name: "Gate Entry",
-                    value: dashboardData?.totalGateEntry || 0,
-                  },
-                  {
-                    name: "Weighment",
-                    value: dashboardData?.totalWeighment || 0,
-                  },
-                  { name: "QC", value: dashboardData?.totalQC || 0 },
-                  {
-                    name: "Material Unloading",
-                    value: dashboardData?.totalMaterialUnloading || 0,
-                  },
-                  {
-                    name: "Submit Bill",
-                    value: dashboardData?.totalSubmitBill || 0,
-                  },
-                  {
-                    name: "Bill Entry ERP",
-                    value: dashboardData?.totalBillEntryERP || 0,
-                  },
-                ]}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis
-                  dataKey="name"
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  interval={0}
-                  fontSize={10}
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis fontSize={10} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                  }}
-                  formatter={(value) => [value, "Count"]}
-                />
-                <Bar
-                  dataKey="value"
-                  radius={[4, 4, 0, 0]}
-                  fill="hsl(217, 91%, 35%)"
-                  animationDuration={1000}
-                >
-                  {[
-                    { name: "PO", color: "#3b82f6" },
-                    { name: "Issue PO", color: "#10b981" },
-                    { name: "Follow Up", color: "#8b5cf6" },
-                    { name: "Gate Entry", color: "#f59e0b" },
-                    { name: "Weighment", color: "#6366f1" },
-                    { name: "QC", color: "#f59e0b" },
-                    { name: "Material Unloading", color: "#06b6d4" },
-                    { name: "Submit Bill", color: "#ef4444" },
-                    { name: "Bill Entry ERP", color: "#ec4899" },
-                  ].map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-      </div> */}
+        {/* ================= DELAY ANALYSIS ================= */}
+        <div className="lg:col-span-5">
+          <Card className="p-3 border-0 shadow-sm h-72 overflow-hidden">
+            <h3 className="text-sm font-semibold text-gray-900 -mb-6 ">
+              Delay Analysis Dashboard
+            </h3>
 
-
-
-      {/* Charts + Delay Analysis (ONE ROW) */}
-<div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-
-  {/* ================= PIE CHART ================= */}
-  <div className="lg:col-span-3">
-    <Card className="p-3 border-0 shadow-sm h-72">
-      <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-        <BarChart3 className="w-4 h-4" />
-        Total Tasks Distribution
-      </h3>
-
-      {/* ⬇️ SAME OLD PIE CHART (NO CHANGE) */}
-      <div className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={[
-                { name: "PO", value: dashboardData?.totalPO || 0 },
-                { name: "Issue PO", value: dashboardData?.totalIssuePO || 0 },
-                { name: "Follow Up", value: dashboardData?.totalFollowUp || 0 },
-                { name: "Gate Entry", value: dashboardData?.totalGateEntry || 0 },
-                { name: "Weighment", value: dashboardData?.totalWeighment || 0 },
-                { name: "QC", value: dashboardData?.totalQC || 0 },
-                { name: "Material Unloading", value: dashboardData?.totalMaterialUnloading || 0 },
-                { name: "Submit Bill", value: dashboardData?.totalSubmitBill || 0 },
-                { name: "Bill Entry ERP", value: dashboardData?.totalBillEntryERP || 0 }
-              ]}
-              cx="50%"
-              cy="42%"
-              labelLine={false}
-              label={({ name, percent }) =>
-                `${name}: ${(percent * 100).toFixed(0)}%`
-              }
-              outerRadius={50}
-              dataKey="value"
-              className="text-[10px]"
-            >
-              {[
-                "#3b82f6",
-                "#10b981",
-                "#8b5cf6",
-                "#f59e0b",
-                "#6366f1",
-                "#f59e0b",
-                "#06b6d4",
-                "#ef4444",
-                "#ec4899"
-              ].map((color, index) => (
-                <Cell key={index} fill={color} />
-              ))}
-            </Pie>
-            <Tooltip />
-            {/* <Legend wrapperStyle={{ fontSize: "10px" }} iconSize={8} /> */}
-          </PieChart>
-        </ResponsiveContainer>
+            <div className="h-56 overflow-y-auto pr-2 -mx-4">
+              <DelayAnalysis />
+            </div>
+          </Card>
+        </div>
       </div>
-    </Card>
-  </div>
-
-  {/* ================= PROGRESS OVERVIEW ================= */}
-  <div className="lg:col-span-4">
-    <Card className="p-3 border-0 shadow-sm h-72">
-      <h3 className="text-sm font-semibold text-gray-900 -mb-6 flex items-center gap-2">
-        
-        <BarChart3 className="w-4 h-4" />
-        Progress Overview
-      </h3>
-
-      {/* ⬇️ SAME OLD BAR CHART (NO CHANGE) */}
-      <div className="h-48">
-        <ResponsiveContainer  width="100%" height="100%">
-          <BarChart
-            data={[
-              { name: "PO", value: dashboardData?.totalPO || 0 },
-              { name: "Issue PO", value: dashboardData?.totalIssuePO || 0 },
-              { name: "Follow Up", value: dashboardData?.totalFollowUp || 0 },
-              { name: "Gate Entry", value: dashboardData?.totalGateEntry || 0 },
-              { name: "Weighment", value: dashboardData?.totalWeighment || 0 },
-              { name: "QC", value: dashboardData?.totalQC || 0 },
-              { name: "Material Unloading", value: dashboardData?.totalMaterialUnloading || 0 },
-              { name: "Submit Bill", value: dashboardData?.totalSubmitBill || 0 },
-              { name: "Bill Entry ERP", value: dashboardData?.totalBillEntryERP || 0 }
-            ]}
-            // margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            margin={{ top: 20, right: 10, left: 0, bottom: 12 }}
-            
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" fontSize={10} angle={-35} textAnchor="end" interval={0} height={50} />
-            <YAxis fontSize={10} />
-            <Tooltip />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-              {[
-                "#3b82f6",
-                "#10b981",
-                "#8b5cf6",
-                "#f59e0b",
-                "#6366f1",
-                "#f59e0b",
-                "#06b6d4",
-                "#ef4444",
-                "#ec4899"
-              ].map((color, index) => (
-                <Cell key={index} fill={color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
-  </div>
-
-  {/* ================= DELAY ANALYSIS ================= */}
-  <div className="lg:col-span-5">
-  <Card className="p-3 border-0 shadow-sm h-72 overflow-hidden">
-    <h3 className="text-sm font-semibold text-gray-900 -mb-6 ">
-      Delay Analysis Dashboard
-    </h3>
-
-    <div className="h-56 overflow-y-auto pr-2 -mx-4">
-      <DelayAnalysis />
-    </div>
-  </Card>
-</div>
-
-
-</div>
-
-
-
-
-
 
       <div>
         <CancelDataTable />

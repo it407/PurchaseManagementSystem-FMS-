@@ -95,70 +95,7 @@ export function FollowUpPage() {
     setIsEditModalOpen(true);
   };
 
-  // Add this function to handle the edit submission
-  // const handleEditSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (recordToEdit) {
-  //     try {
-  //       setSubmitLoading(true);
 
-  //       // Format date to dd/mm/yyyy
-  //       const formatDateToDDMMYYYY = (dateString: string) => {
-  //         const date = new Date(dateString);
-  //         const day = String(date.getDate()).padStart(2, "0");
-  //         const month = String(date.getMonth() + 1).padStart(2, "0");
-  //         const year = date.getFullYear();
-  //         return `${day}/${month}/${year}`;
-  //       };
-
-  //       const formattedExpectedDate = new Date(
-  //         formData.expectedDelivery
-  //       ).toLocaleString("en-US", {
-  //         year: "numeric",
-  //         month: "2-digit",
-  //         day: "2-digit",
-  //         hour: "2-digit",
-  //         minute: "2-digit",
-  //         second: "2-digit",
-  //         hour12: true,
-  //       });
-
-  //       const updatePayload = {
-  //         action: "update",
-  //         sheetId: "1MtxLluyxLJwDV_2fxw4qG0wUOBE4Ys8Wd_ewLeP9czA",
-  //         sheetName: "FMS",
-  //         rowIndex: recordToEdit.rowIndex,
-  //         columnData: {
-  //           S: formattedExpectedDate, // Expected Date - formatted as dd/mm/yyyy
-  //         },
-  //       };
-
-  //       await fetch(
-  //         "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec",
-  //         {
-  //           method: "POST",
-  //           mode: "no-cors",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //           },
-  //           body: JSON.stringify(updatePayload),
-  //         }
-  //       );
-
-  //       // Refresh data after a short delay
-  //       setTimeout(async () => {
-  //         await fetchFollowUpData();
-  //         setIsEditModalOpen(false);
-  //         setRecordToEdit(null);
-  //         setSubmitLoading(false);
-  //       }, 1500);
-  //     } catch (error) {
-  //       console.error("Error updating expected delivery:", error);
-  //       alert("Error updating expected delivery. Please try again.");
-  //       setSubmitLoading(false);
-  //     }
-  //   }
-  // };
 
   // Replace the existing handleEditSubmit function with this updated version
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -427,6 +364,18 @@ export function FollowUpPage() {
             });
           }
         }
+
+        pendingData.sort((a, b) => {
+  const dateA = new Date(a.plannedDate.split("/").reverse().join("-"));
+  const dateB = new Date(b.plannedDate.split("/").reverse().join("-"));
+  return dateA.getTime() - dateB.getTime();
+});
+
+historyData.sort((a, b) => {
+  const dateA = new Date(a.plannedDate.split("/").reverse().join("-"));
+  const dateB = new Date(b.plannedDate.split("/").reverse().join("-"));
+  return dateA.getTime() - dateB.getTime();
+});
 
         setPending(pendingData);
         setHistory(historyData);

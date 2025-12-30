@@ -401,8 +401,29 @@ export function BillEntryPage() {
 };
 
 
-const filteredPending = filterRecords(pending);
-const filteredHistory = filterRecords(history);
+const parseDDMMYYYY = (dateStr: string) => {
+  if (!dateStr) return new Date(0);
+  const [day, month, year] = dateStr.split("/");
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
+
+
+// const filteredPending = filterRecords(pending);
+// const filteredHistory = filterRecords(history);
+
+
+const filteredPending = filterRecords(pending).sort((a, b) => {
+  const dateA = parseDDMMYYYY(a.plannedDate);
+  const dateB = parseDDMMYYYY(b.plannedDate);
+  return dateA.getTime() - dateB.getTime(); // old → new
+});
+const filteredHistory = filterRecords(history).sort((a, b) => {
+  const dateA = parseDDMMYYYY(a.plannedDate);
+  const dateB = parseDDMMYYYY(b.plannedDate);
+  return dateA.getTime() - dateB.getTime(); // old → new
+});
+
 
   return (
     <div className="space-y-6 p-4 md:p-0">

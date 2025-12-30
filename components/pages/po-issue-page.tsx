@@ -106,6 +106,16 @@ export function POIssuePage() {
 };
 
 
+const parseDDMMYYYY = (dateStr: string) => {
+  if (!dateStr) return new Date(0);
+  const [day, month, year] = dateStr.split("/");
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
+// 🔹 Pending tab ke liye: filter + sort
+
+
+
   // Fetch data from Google Sheets
   const fetchPOData = async () => {
     try {
@@ -530,6 +540,20 @@ export function POIssuePage() {
     );
   };
 
+
+  const filteredPending = [...filterPOs(posPending)].sort((a, b) => {
+  const dateA = parseDDMMYYYY(a.plannedDate);
+  const dateB = parseDDMMYYYY(b.plannedDate);
+  return dateA.getTime() - dateB.getTime(); // old → new
+});
+
+// 🔹 History tab ke liye: filter + sort
+const filteredHistory = [...filterPOs(posHistory)].sort((a, b) => {
+  const dateA = parseDDMMYYYY(a.plannedDate);
+  const dateB = parseDDMMYYYY(b.plannedDate);
+  return dateA.getTime() - dateB.getTime(); // old → new
+});
+
   return (
     <div className="space-y-6 p-4 md:p-0">
       {/* Header */}
@@ -616,7 +640,9 @@ export function POIssuePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {filterPOs(posPending).map((po) => (
+                    {/* {filterPOs(posPending).map((po) => ( */}
+                    {filteredPending.map((po) => (
+
                       <tr
                         key={po.id}
                         className="hover:bg-gray-50 transition-colors"
@@ -675,7 +701,9 @@ export function POIssuePage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {filterPOs(posPending).map((po) => (
+                {/* {filterPOs(posPending).map((po) => ( */}
+                {filteredPending.map((po) => (
+
                   <div
                     key={po.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -794,7 +822,9 @@ export function POIssuePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {filterPOs(posHistory).map((po) => (
+                    {/* {filterPOs(posHistory).map((po) => ( */}
+                    {filteredHistory.map((po) => (
+
                       <tr
                         key={po.id}
                         className="hover:bg-gray-50 transition-colors"
@@ -852,7 +882,9 @@ export function POIssuePage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4 p-4">
-                {filterPOs(posHistory).map((po) => (
+                {/* {filterPOs(posHistory).map((po) => ( */}
+                {filteredHistory.map((po) => (
+
                   <div
                     key={po.id}
                     className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
