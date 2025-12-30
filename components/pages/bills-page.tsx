@@ -82,10 +82,18 @@ export function BillsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] =
     useState<ProcurementRecord | null>(null);
-  const [formData, setFormData] = useState({
-    billNo: "",
-    amount: "",
-  });
+  // const [formData, setFormData] = useState({
+  //   billNo: "",
+  //   amount: "",
+  // });
+
+
+  const [formData, setFormData] = useState<{
+  bills: Array<{ billNo: string; amount: string }>;
+}>({
+  bills: [{ billNo: "", amount: "" }],
+});
+
 
 
 
@@ -211,14 +219,21 @@ export function BillsPage() {
     fetchData();
   }, []);
 
+  // const handleSubmitBill = (record: ProcurementRecord) => {
+  //   setSelectedRecord(record);
+  //   setFormData({
+  //     billNo: "",
+  //     amount: "",
+  //   });
+  //   setIsModalOpen(true);
+  // };
   const handleSubmitBill = (record: ProcurementRecord) => {
-    setSelectedRecord(record);
-    setFormData({
-      billNo: "",
-      amount: "",
-    });
-    setIsModalOpen(true);
-  };
+  setSelectedRecord(record);
+  setFormData({
+    bills: [{ billNo: "", amount: "" }],
+  });
+  setIsModalOpen(true);
+};
 
   const handleViewBill = (record: ProcurementRecord) => {
     if (record.billLink) {
@@ -243,60 +258,118 @@ export function BillsPage() {
     return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!selectedRecord) return;
+
+  //   setSubmitLoading(true);
+  //   try {
+  //     // Get current date in dd/mm/yyyy format
+  //     const now = new Date();
+  //     const day = String(now.getDate()).padStart(2, "0");
+  //     const month = String(now.getMonth() + 1).padStart(2, "0");
+  //     const year = now.getFullYear();
+  //     // const timestamp = new Date().toLocaleString();
+  //     const timestamp = formatTimestamp();
+
+  //     // Generate bill link using folder ID
+
+  //     // Prepare data for submission
+  //     const submissionData = {
+  //       action: "update",
+  //       sheetId: "1MtxLluyxLJwDV_2fxw4qG0wUOBE4Ys8Wd_ewLeP9czA",
+  //       sheetName: "FMS",
+  //       rowIndex: selectedRecord.rowIndex,
+  //       columnData: {
+  //         AW: timestamp, // Column AT - Actual7 (current date)
+  //         AX: formData.billNo, // Column AU - Bill No
+  //         AY: formData.amount, // Column AV - Bill Link
+  //       },
+  //     };
+
+  //     // Submit to Google Sheets
+  //     await fetch(
+  //       "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec",
+  //       {
+  //         method: "POST",
+  //         mode: "no-cors",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(submissionData),
+  //       }
+  //     );
+
+  //     // Refresh data after a short delay
+  //     setTimeout(async () => {
+  //       await fetchData();
+  //       setIsModalOpen(false);
+  //       setSelectedRecord(null);
+  //       setSubmitLoading(false);
+  //     }, 1500);
+  //   } catch (error) {
+  //     console.error("Error submitting data:", error);
+  //     setSubmitLoading(false);
+  //   }
+  // };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRecord) return;
+  e.preventDefault();
+  if (!selectedRecord) return;
 
-    setSubmitLoading(true);
-    try {
-      // Get current date in dd/mm/yyyy format
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, "0");
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const year = now.getFullYear();
-      // const timestamp = new Date().toLocaleString();
-      const timestamp = formatTimestamp();
+  setSubmitLoading(true);
+  try {
+    // Calculate total amount
+    const totalAmount = formData.bills.reduce((sum, bill) => {
+      return sum + (Number(bill.amount) || 0);
+    }, 0);
 
-      // Generate bill link using folder ID
+    // Format bill numbers as "Bill No 1, Bill No 2, ..."
+    const formattedBillNos = formData.bills
+      .map((bill, index) => `Bill No ${index + 1}: ${bill.billNo}`)
+      .join(", ");
 
-      // Prepare data for submission
-      const submissionData = {
-        action: "update",
-        sheetId: "1MtxLluyxLJwDV_2fxw4qG0wUOBE4Ys8Wd_ewLeP9czA",
-        sheetName: "FMS",
-        rowIndex: selectedRecord.rowIndex,
-        columnData: {
-          AW: timestamp, // Column AT - Actual7 (current date)
-          AX: formData.billNo, // Column AU - Bill No
-          AY: formData.amount, // Column AV - Bill Link
+    const timestamp = formatTimestamp();
+
+    // Prepare data for submission
+    const submissionData = {
+      action: "update",
+      sheetId: "1MtxLluyxLJwDV_2fxw4qG0wUOBE4Ys8Wd_ewLeP9czA",
+      sheetName: "FMS",
+      rowIndex: selectedRecord.rowIndex,
+      columnData: {
+        AW: timestamp, // Column AT - Actual7 (current date)
+        AX: formattedBillNos, // Column AU - Bill No (comma-separated)
+        AY: totalAmount.toString(), // Column AV - Total Amount
+      },
+    };
+
+    // Submit to Google Sheets
+    await fetch(
+      "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec",
+      {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
         },
-      };
+        body: JSON.stringify(submissionData),
+      }
+    );
 
-      // Submit to Google Sheets
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbwRdlSHvnytTCn0x5ElNPG_nh8Ge_ZVZJDiEOY1Htv3UOgEwMQj5EZUyPSUxQFOmym0/exec",
-        {
-          method: "POST",
-          mode: "no-cors",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(submissionData),
-        }
-      );
-
-      // Refresh data after a short delay
-      setTimeout(async () => {
-        await fetchData();
-        setIsModalOpen(false);
-        setSelectedRecord(null);
-        setSubmitLoading(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Error submitting data:", error);
+    // Refresh data after a short delay
+    setTimeout(async () => {
+      await fetchData();
+      setIsModalOpen(false);
+      setSelectedRecord(null);
       setSubmitLoading(false);
-    }
-  };
+    }, 1500);
+  } catch (error) {
+    console.error("Error submitting data:", error);
+    setSubmitLoading(false);
+  }
+};
 
   const generateCancelSerialNumber = async () => {
     try {
@@ -824,7 +897,7 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
             disabled
           />
 
-          <LabeledInput
+          {/* <LabeledInput
             label="Bill No."
             placeholder="e.g. BILL-001"
             value={formData.billNo}
@@ -843,7 +916,84 @@ const filteredHistory = filterRecords(history).sort((a, b) => {
               setFormData({ ...formData, amount: e.target.value })
             }
             required
-          />
+          /> */}
+
+
+
+{/* Bill No section with Add button */}
+<div className="flex items-center justify-between mb-2">
+  <label className="text-sm font-medium text-gray-700">Bill Details</label>
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    onClick={() =>
+      setFormData({
+        ...formData,
+        bills: [...formData.bills, { billNo: "", amount: "" }],
+      })
+    }
+    className="h-8 text-xs"
+  >
+    + Add Bill No
+  </Button>
+</div>
+
+{/* Dynamic bill inputs */}
+{formData.bills.map((bill, index) => (
+  <div key={index} className="flex gap-3 items-start">
+    <div className="flex-1">
+      <label className="block text-xs font-medium text-gray-700 mb-1">
+        Bill No {index + 1}
+        <span className="text-red-500 ml-1">*</span>
+      </label>
+      <Input
+        type="text"
+        placeholder="e.g. BILL-001"
+        value={bill.billNo}
+        onChange={(e) => {
+          const newBills = [...formData.bills];
+          newBills[index].billNo = e.target.value;
+          setFormData({ ...formData, bills: newBills });
+        }}
+        required
+        className="text-sm"
+      />
+    </div>
+    <div className="flex-1">
+      <label className="block text-xs font-medium text-gray-700 mb-1">
+        Amount {index + 1} (₹)
+        <span className="text-red-500 ml-1">*</span>
+      </label>
+      <Input
+        type="number"
+        placeholder="0"
+        value={bill.amount}
+        onChange={(e) => {
+          const newBills = [...formData.bills];
+          newBills[index].amount = e.target.value;
+          setFormData({ ...formData, bills: newBills });
+        }}
+        required
+        className="text-sm"
+      />
+    </div>
+    {formData.bills.length > 1 && (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => {
+          const newBills = formData.bills.filter((_, i) => i !== index);
+          setFormData({ ...formData, bills: newBills });
+        }}
+        className="h-10 mt-6 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+      >
+        ×
+      </Button>
+    )}
+  </div>
+))}
 
           <div className="flex flex-col gap-3 sm:flex-row pt-2">
             <Button
