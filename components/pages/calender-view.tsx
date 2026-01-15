@@ -425,26 +425,7 @@ export default function MaterialArrivalCalendar() {
         setSupplierSearch("");
     };
 
-    // Download report
-    // const handleDownloadReport = () => {
-    //     const csvContent = [
-    //         ["Date", "Material Count", "Total Quantity", "Total Amount", "Materials"],
-    //         ...filteredEvents.map(event => [
-    //             event.start,
-    //             event.extendedProps.count,
-    //             event.extendedProps.totalQuantity,
-    //             event.extendedProps.totalAmount,
-    //             event.extendedProps.materials.map(m => m.materialName).join('; ')
-    //         ])
-    //     ].map(row => row.join(',')).join('\n');
-
-    //     const blob = new Blob([csvContent], { type: 'text/csv' });
-    //     const url = window.URL.createObjectURL(blob);
-    //     const a = document.createElement('a');
-    //     a.href = url;
-    //     a.download = `material-arrivals-${new Date().toISOString().split('T')[0]}.csv`;
-    //     a.click();
-    // };
+    
 
     useEffect(() => {
         fetchMaterialArrivals();
@@ -478,153 +459,165 @@ export default function MaterialArrivalCalendar() {
 
             {/* Filters */}
             {/* Filters */}
+            
+
             <Card className="p-4">
-                <div className="flex flex-col md:flex-row gap-4 items-end">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Material Name Dropdown with Search */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Filter className="w-4 h-4 inline mr-1" />
-                                Material Name
-                            </label>
-                            <Select
-                                value={filters.material}
-                                onValueChange={(value) => setFilters({ ...filters, material: value })}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Material" />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-60">
-                                    {/* Search Input inside Dropdown */}
-                                    <div className="p-2 border-b">
-                                        <Input
-                                            placeholder="Search material..."
-                                            value={materialSearch}
-                                            onChange={(e) => setMaterialSearch(e.target.value)}
-                                            className="h-8 text-sm"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </div>
+  <div className="flex flex-col gap-4">
 
-                                    {/* All Materials Option with custom value */}
-                                    <SelectItem value="all-materials">
-                                        All Materials
-                                    </SelectItem>
+    {/* FILTER GRID */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-                                    {/* Filtered Material List */}
-                                    {filteredMaterials.map((material) => (
-                                        <SelectItem key={material} value={material}>
-                                            {material}
-                                        </SelectItem>
-                                    ))}
+      {/* Material */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          <Filter className="w-4 h-4 inline mr-1" />
+          Material Name
+        </label>
+        <Select
+          value={filters.material}
+          onValueChange={(value) =>
+            setFilters({ ...filters, material: value })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select Material" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60">
+            <div className="p-2 border-b">
+              <Input
+                placeholder="Search material..."
+                value={materialSearch}
+                onChange={(e) => setMaterialSearch(e.target.value)}
+                className="h-8 text-sm"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
 
-                                    {filteredMaterials.length === 0 && (
-                                        <div className="p-2 text-sm text-gray-500 text-center">
-                                            No materials found
-                                        </div>
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        </div>
+            <SelectItem value="all-materials">All Materials</SelectItem>
 
-                        {/* Supplier Name Dropdown with Search */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Truck className="w-4 h-4 inline mr-1" />
-                                Supplier
-                            </label>
-                            <Select
-                                value={filters.supplier}
-                                onValueChange={(value) => setFilters({ ...filters, supplier: value })}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Supplier" />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-60">
-                                    {/* Search Input inside Dropdown */}
-                                    <div className="p-2 border-b">
-                                        <Input
-                                            placeholder="Search supplier..."
-                                            value={supplierSearch}
-                                            onChange={(e) => setSupplierSearch(e.target.value)}
-                                            className="h-8 text-sm"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </div>
+            {filteredMaterials.map((material) => (
+              <SelectItem key={material} value={material}>
+                {material}
+              </SelectItem>
+            ))}
 
-                                    {/* All Suppliers Option with custom value */}
-                                    <SelectItem value="all-suppliers">
-                                        All Suppliers
-                                    </SelectItem>
+            {filteredMaterials.length === 0 && (
+              <div className="p-2 text-sm text-gray-500 text-center">
+                No materials found
+              </div>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
 
-                                    {/* Filtered Supplier List */}
-                                    {filteredSuppliersList.map((supplier) => (
-                                        <SelectItem key={supplier} value={supplier}>
-                                            {supplier}
-                                        </SelectItem>
-                                    ))}
+      {/* Supplier */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          <Truck className="w-4 h-4 inline mr-1" />
+          Supplier
+        </label>
+        <Select
+          value={filters.supplier}
+          onValueChange={(value) =>
+            setFilters({ ...filters, supplier: value })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select Supplier" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60">
+            <div className="p-2 border-b">
+              <Input
+                placeholder="Search supplier..."
+                value={supplierSearch}
+                onChange={(e) => setSupplierSearch(e.target.value)}
+                className="h-8 text-sm"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
 
-                                    {filteredSuppliersList.length === 0 && (
-                                        <div className="p-2 text-sm text-gray-500 text-center">
-                                            No suppliers found
-                                        </div>
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        </div>
+            <SelectItem value="all-suppliers">All Suppliers</SelectItem>
 
-                        {/* Status Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Status
-                            </label>
-                            <Select
-                                value={filters.status}
-                                onValueChange={(value) => setFilters({ ...filters, status: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="fully-received">
-                                        <span className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                            Fully Received
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="partial">
-                                        <span className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                                            Partial
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="delayed">
-                                        <span className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                            Delayed
-                                        </span>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
+            {filteredSuppliersList.map((supplier) => (
+              <SelectItem key={supplier} value={supplier}>
+                {supplier}
+              </SelectItem>
+            ))}
 
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            setFilters({ material: "all-materials", supplier: "all-suppliers", status: "all" });
-                            setMaterialSearch("");
-                            setSupplierSearch("");
-                        }}
-                    >
-                        Clear Filters
-                    </Button>
-                </div>
-            </Card>
+            {filteredSuppliersList.length === 0 && (
+              <div className="p-2 text-sm text-gray-500 text-center">
+                No suppliers found
+              </div>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Status */}
+      <div className="col-span-1 md:col-span-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Status
+        </label>
+        <Select
+          value={filters.status}
+          onValueChange={(value) =>
+            setFilters({ ...filters, status: value })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="fully-received">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                Fully Received
+              </span>
+            </SelectItem>
+            <SelectItem value="partial">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                Partial
+              </span>
+            </SelectItem>
+            <SelectItem value="delayed">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                Delayed
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Clear Button */}
+      <div className="flex items-end">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => {
+            setFilters({
+              material: "all-materials",
+              supplier: "all-suppliers",
+              status: "all",
+            });
+            setMaterialSearch("");
+            setSupplierSearch("");
+          }}
+        >
+          Clear Filters
+        </Button>
+      </div>
+    </div>
+  </div>
+</Card>
+
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
                 <Card className="p-4 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
                     <div className="flex items-center justify-between">
                         <div>
@@ -677,62 +670,108 @@ export default function MaterialArrivalCalendar() {
             </div>
 
             {/* Calendar */}
-            <Card className="p-4">
-                {loading ? (
-                    <div className="flex justify-center items-center h-96">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    </div>
-                ) : (
-                    <div className="calendar-container">
-                        <FullCalendar
-                            plugins={[dayGridPlugin, interactionPlugin]}
-                            initialView="dayGridMonth"
-                            events={filteredEvents}
-                            dateClick={handleDateClick}
-                            eventClick={handleEventClick}
-                            headerToolbar={{
-                                left: "prev,next today",
-                                center: "title",
-                                right: "dayGridMonth,dayGridWeek"
-                            }}
-                            height="auto"
-                            eventContent={(eventInfo) => (
-                                <div className="fc-event-content p-1">
-                                    <div className="text-xs font-semibold truncate">
-                                        {eventInfo.event.title}
-                                    </div>
-                                    <div className="text-xs opacity-90">
-                                        {eventInfo.event.extendedProps.count} items
-                                    </div>
-                                </div>
-                            )}
-                            eventDisplay="block"
-                            dayMaxEvents={3}
-                            views={{
-                                dayGridMonth: {
-                                    dayMaxEventRows: 3
-                                }
-                            }}
-                        />
-                    </div>
-                )}
+         <Card className="p-4">
+  {loading ? (
+    <div className="flex justify-center items-center h-96">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  ) : (
+    <div className="calendar-container">
+      <FullCalendar
+        plugins={[dayGridPlugin, interactionPlugin]}
+        initialView="dayGridMonth"
+        events={filteredEvents}
+        dateClick={handleDateClick}
+        eventClick={handleEventClick}
+        headerToolbar={{
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,dayGridWeek",
+        }}
+        height={window.innerWidth < 768 ? 500 : "auto"} 
+        eventContent={(eventInfo) => (
+          <div className="fc-event-content p-1">
+            <div className="text-xs font-semibold truncate">
+              {eventInfo.event.title}
+            </div>
+            <div className="text-xs opacity-90">
+              {eventInfo.event.extendedProps.count} items
+            </div>
+          </div>
+        )}
+        eventDisplay="block"
+        dayMaxEvents={3}
+        views={{
+          dayGridMonth: {
+            dayMaxEventRows: 3,
+          },
+        }}
+      />
+    </div>
+  )}
 
-                {/* Legend */}
-                <div className="mt-6 flex flex-wrap gap-4 items-center text-sm">
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span>Fully Received</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <span>Partial Quantity</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span>Delayed Arrival</span>
-                    </div>
-                </div>
-            </Card>
+  {/* Legend */}
+  <div className="mt-6 flex flex-wrap gap-4 items-center text-sm">
+    <div className="flex items-center gap-2">
+      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+      <span>Fully Received</span>
+    </div>
+    <div className="flex items-center gap-2">
+      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+      <span>Partial Quantity</span>
+    </div>
+    <div className="flex items-center gap-2">
+      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+      <span>Delayed Arrival</span>
+    </div>
+  </div>
+
+  {/* Custom CSS for mobile header layout */}
+  <style jsx global>{`
+    .fc-header-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .fc-header-toolbar .fc-left,
+    .fc-header-toolbar .fc-right {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .fc-header-toolbar .fc-center {
+      text-align: center;
+      margin: 0.25rem 0;
+    }
+
+    /* MOBILE CUSTOMIZATION */
+    @media (max-width: 768px) {
+      .fc-header-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      /* First row: arrows + today + title centered */
+      .fc-header-toolbar .fc-left,
+      .fc-header-toolbar .fc-center {
+        order: 1;
+        justify-content: center;
+        width: 100%;
+      }
+
+      .fc-header-toolbar .fc-right {
+        order: 2;
+        justify-content: flex-end; /* Second row aligned to right */
+        margin-top: 0.25rem;
+        width: 100%;
+      }
+    }
+  `}</style>
+</Card>
+
 
             {/* Date Details Modal */}
             <Modal
